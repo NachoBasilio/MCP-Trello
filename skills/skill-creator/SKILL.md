@@ -22,6 +22,7 @@ metadata:
 
 - NO crear skills por capricho; solo cuando encapsulen una decision reusable.
 - Cada skill debe vivir en `skills/{skill-name}/SKILL.md`.
+- La carpeta `skills/{skill-name}/assets/` debe existir cuando la skill necesite plantillas reutilizables.
 - Toda skill nueva debe quedar registrada en `AGENTS.md` con proposito, trigger y ruta.
 - La descripcion del frontmatter debe incluir el trigger de uso, no solo el nombre.
 - Evitar duplicar reglas globales si ya existen en `AGENTS.md`; la skill debe complementar, no clonar.
@@ -36,36 +37,11 @@ metadata:
 5. Registrar la skill en `AGENTS.md`.
 6. Verificar consistencia con lectura de archivos y `git diff --check`.
 
-## Skill Template
+## Assets
 
-```markdown
----
-name: my-skill
-description: >
-  Describe que resuelve y cuando debe cargarse. Trigger: cuando el pedido
-  mencione X, Y o Z.
-license: Apache-2.0
-metadata:
-  author: gentleman-programming
-  version: "1.0"
----
-
-## When to Use
-
-- Caso 1
-- Caso 2
-
-## Critical Patterns
-
-- Regla 1
-- Regla 2
-
-## Commands
-
-```bash
-# comandos reales o placeholders explicitamente marcados como pendientes
-```
-```
+- Usar `assets/SKILL-template.md` como punto de partida para nuevas skills.
+- Adaptar el frontmatter al repo real; no copiar placeholders a ciegas.
+- Si la skill necesita mas de una plantilla, agruparlas por uso dentro de `assets/`.
 
 ## Naming Guide
 
@@ -89,3 +65,4 @@ git diff --check
 - Confirmar que `AGENTS.md` la referencia.
 - Verificar que los triggers no pisen otra skill sin necesidad.
 - No agregar `assets/` o `references/` vacios solo para aparentar estructura.
+- Verificar que las plantillas en `assets/` esten sincronizadas con las reglas actuales del repo.

@@ -26,6 +26,7 @@
 - Antes de agregar o cambiar pruebas, leer primero `skills/testing-contracts/SKILL.md`.
 - Antes de preparar entrega o corte de release, leer primero `skills/release-checklist/SKILL.md`.
 - Antes de crear o refinar skills/agentes del repo, leer primero `skills/skill-creator/SKILL.md`.
+- Despues de crear o modificar cualquier skill, ejecutar el criterio de `skills/skill-sync/SKILL.md`.
 - Toda decision no trivial debe dejar evidencia en archivos o comandos verificables.
 
 ## Flujo recomendado
@@ -47,6 +48,7 @@
 | `testing-contracts` | Definir estrategia de pruebas para contratos MCP y adapters | Unit tests, contract tests, mocks, fixtures | `skills/testing-contracts/SKILL.md` |
 | `release-checklist` | Validar readiness sin vender humo | Release, docs, changelog, seguridad, smoke review | `skills/release-checklist/SKILL.md` |
 | `skill-creator` | Crear nuevas skills y agentes locales sin romper consistencia | Nuevas skills, AI workflow, AGENTS.md, plantillas | `skills/skill-creator/SKILL.md` |
+| `skill-sync` | Auditar y sincronizar metadata y referencias de skills del repo | Crear o editar skills, revisar AGENTS, validar consistencia | `skills/skill-sync/SKILL.md` |
 
 ## Triggers de auto-carga
 
@@ -56,6 +58,7 @@
 - Cargar `testing-contracts` cuando el pedido mencione tests, contratos, validacion, mocks, fixtures o regression safety.
 - Cargar `release-checklist` cuando el pedido mencione release, checklist, QA manual, readiness o entrega.
 - Cargar `skill-creator` cuando el pedido mencione crear skills, agentes, instrucciones AI, workflow reusable o actualizar `AGENTS.md`.
+- Cargar `skill-sync` despues de crear o tocar skills, o cuando el pedido mencione sincronizar metadata, validar AGENTS o revisar coherencia del catalogo de skills.
 
 ## Criterio de escalabilidad
 
@@ -63,3 +66,4 @@
 - Mantener nombres estables para poder reusar skills en futuros agentes.
 - Toda nueva skill debe tener frontmatter completo, comandos reales o marcados como pendientes, y registrarse en esta tabla.
 - Las skills de meta-workflow (como `skill-creator`) son obligatorias cuando el proyecto define sus propias convenciones de agentes.
+- Toda modificacion en `skills/` debe revisar consistencia transversal con `skill-sync` antes de darse por lista.
