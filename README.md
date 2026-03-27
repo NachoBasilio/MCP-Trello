@@ -18,6 +18,32 @@ La primera etapa del servidor contempla, como mínimo:
 - crear tarjetas
 - agregar comentarios a tarjetas
 
+## Estructura del proyecto
+
+```
+src/
+├── mcp/                    # Bootstrap del servidor MCP, registry de tools/resources/prompts
+├── application/            # Casos de uso y puertos (interfaces)
+├── domain/                 # Entidades, invariantes, value objects
+├── infrastructure/         # Implementaciones externas
+│   └── trello/            # Cliente HTTP, auth, mappers de Trello
+├── config/                 # Lectura de variables de entorno
+└── shared/                 # Utilidades compartidas
+tests/
+├── unit/                   # Tests unitarios
+├── contracts/              # Tests de contratos entre capas
+└── fixtures/trello/        # Fixtures para tests de Trello
+```
+
+### Responsabilidades de cada capa
+
+| Capa | Responsabilidad | Evitar |
+| --- | --- | --- |
+| `src/mcp/` | Server bootstrap, registry, handlers | Lógica de negocio |
+| `src/application/` | Casos de uso y puertos | Dependencia directa del SDK de Trello |
+| `src/domain/` | Entidades, invariantes, value objects | Imports de infraestructura |
+| `src/infrastructure/trello/` | Cliente HTTP, auth, mappers | Reglas de negocio dispersas |
+
 ## Stack tecnológico
 
 - **Node.js** — runtime del servidor MCP local
@@ -25,6 +51,15 @@ La primera etapa del servidor contempla, como mínimo:
 - **MCP TypeScript SDK** (`@modelcontextprotocol/server`) — SDK oficial para implementar servidores MCP
 - **Zod** — validación de esquemas utilizada por el SDK
 - **Trello REST API** — capa de integración con Trello
+
+## Dependencias
+
+| Paquete | Propósito |
+| --- | --- |
+| `@modelcontextprotocol/sdk` | SDK oficial de MCP |
+| `zod` | Validación de schemas tipados |
+| `dotenv` | Lectura de variables de entorno |
+| `vitest` | Framework de testing |
 
 ## SDK de MCP
 
@@ -57,6 +92,22 @@ Pendiente:
 - integración con cliente de Trello
 - implementación de tools y resources MCP
 - pruebas automatizadas
+
+## Scripts
+
+```bash
+npm install          # Instalar dependencias
+npm run dev          # Desarrollo (pendiente)
+npm run test         # Ejecutar tests con vitest
+npm run test:run     # Ejecutar tests una vez
+npm run typecheck    # Verificación de tipos TypeScript
+```
+
+## Setup
+
+1. Copiar `.env.example` a `.env`
+2. Completar `TRELLO_API_KEY` y `TRELLO_TOKEN`
+3. Ejecutar `npm install`
 
 ## Convenciones del repositorio
 

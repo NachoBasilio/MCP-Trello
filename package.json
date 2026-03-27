@@ -1,0 +1,27 @@
+{
+  "name": "server-mcp-trello",
+  "version": "0.1.0",
+  "description": "MCP Server for Trello integration",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "dev": "pendiente-definir",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "pendiente-definir"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "dotenv": "^16.4.5",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
