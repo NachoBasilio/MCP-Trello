@@ -23,6 +23,8 @@ metadata:
 - No agregar frameworks pesados si el servidor puede resolverse con SDK MCP + utilidades chicas.
 - Preferir aliases o helpers solo si reducen complejidad real; ni en pedo meter magia temprano.
 - Documentar scripts como `pendiente` si todavia no existen en el repo.
+- Todo JSDoc nuevo o modificado debe escribirse en espanol, especialmente en APIs publicas, factories y boundaries.
+- Cada carpeta que gane complejidad propia debe tener su `AGENTS.md` local para registrar reglas de scope, asi la raiz no termina siendo un quilombo monolitico.
 
 ## Baseline Decisions
 
