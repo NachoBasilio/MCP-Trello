@@ -12,14 +12,18 @@
 
 1. Solicitud explicita del usuario.
 2. Este `AGENTS.md`.
-3. `README.md`.
-4. `skills/*/SKILL.md`.
+3. `AGENTS.md` anidados dentro de subdirectorios cuando existan, solo para el scope de esa carpeta.
+4. `README.md`.
+5. `skills/*/SKILL.md`.
 
 ## Reglas de trabajo
 
 - No implementar el servidor MCP completo durante el bootstrap de skills/agentes.
 - No hacer build; validar con lectura, consistencia y estado git.
 - No hacer commit ni push salvo instruccion explicita.
+- Todo JSDoc nuevo o modificado debe escribirse en espanol.
+- Cada vez que se empiece a trabajar de forma sostenida en una carpeta nueva, crear un `AGENTS.md` local con las reglas, boundaries y decisiones que solo aplican a ese scope.
+- Si existe un `AGENTS.md` local para la carpeta en la que se esta trabajando, leerlo antes de modificar archivos dentro de ese scope.
 - Antes de tocar arquitectura, leer primero `skills/mcp-server-architecture/SKILL.md`.
 - Antes de tocar integracion Trello, leer primero `skills/trello-api-integration/SKILL.md`.
 - Antes de proponer setup o tooling, leer primero `skills/node-typescript-setup/SKILL.md`.
@@ -67,3 +71,4 @@
 - Toda nueva skill debe tener frontmatter completo, comandos reales o marcados como pendientes, y registrarse en esta tabla.
 - Las skills de meta-workflow (como `skill-creator`) son obligatorias cuando el proyecto define sus propias convenciones de agentes.
 - Toda modificacion en `skills/` debe revisar consistencia transversal con `skill-sync` antes de darse por lista.
+- Preferir mover reglas locales a `AGENTS.md` anidados antes que inflar el `AGENTS.md` raiz con detalles de una sola carpeta.

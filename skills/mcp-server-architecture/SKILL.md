@@ -24,6 +24,7 @@ metadata:
 - Toda dependencia a Trello vive detras de un adapter con interfaz propia.
 - Centralizar validacion y mapping en boundaries; no dejar payloads crudos circular por todo el sistema.
 - Disenar para sumar tools y resources sin duplicar wiring.
+- Cuando una carpeta empiece a tener reglas propias de capa, crear un `AGENTS.md` local en ese directorio en vez de seguir cargando detalles en la raiz.
 
 ## Recommended Shape
 
@@ -62,3 +63,4 @@ mkdir -p tests/unit tests/contracts
 - Si un cambio toca protocolo MCP y Trello a la vez, partirlo en dos capas y definir interfaz intermedia.
 - Si una tool necesita mas de un servicio externo, crear un caso de uso orquestador en `src/application/`.
 - Si un handler empieza a mapear demasiados campos, mover ese mapping a un adapter dedicado.
+- Si una carpeta nueva concentra decisiones de naming, boundaries, validaciones o exports, documentarlas en su `AGENTS.md` local antes de seguir expandiendo esa capa.
