@@ -50,6 +50,7 @@
 | `node-typescript-setup` | Guiar setup inicial de Node.js + TypeScript sin sobreingenieria | `package.json`, `tsconfig`, scripts, tooling | `skills/node-typescript-setup/SKILL.md` |
 | `trello-api-integration` | Estandarizar acceso a Trello, auth y mapeos de dominio | Boards, cards, labels, webhooks, rate limits | `skills/trello-api-integration/SKILL.md` |
 | `testing-contracts` | Definir estrategia de pruebas para contratos MCP y adapters | Unit tests, contract tests, mocks, fixtures | `skills/testing-contracts/SKILL.md` |
+| `pull-request-prep` | Preparar pull requests coherentes con base `dev` y cuerpo verificable | Pull request, PR, `gh pr create`, entrega para revision | `skills/pull-request-prep/SKILL.md` |
 | `release-checklist` | Validar readiness sin vender humo | Release, docs, changelog, seguridad, smoke review | `skills/release-checklist/SKILL.md` |
 | `skill-creator` | Crear nuevas skills y agentes locales sin romper consistencia | Nuevas skills, AI workflow, AGENTS.md, plantillas | `skills/skill-creator/SKILL.md` |
 | `skill-sync` | Auditar y sincronizar metadata y referencias de skills del repo | Crear o editar skills, revisar AGENTS, validar consistencia | `skills/skill-sync/SKILL.md` |
@@ -60,6 +61,7 @@
 - Cargar `node-typescript-setup` cuando el pedido mencione bootstrap, setup, TypeScript, scripts, lint, estructura base o tooling.
 - Cargar `trello-api-integration` cuando el pedido mencione Trello API, auth, tokens, boards, lists, cards, webhooks o mapeo de payloads.
 - Cargar `testing-contracts` cuando el pedido mencione tests, contratos, validacion, mocks, fixtures o regression safety.
+- Cargar `pull-request-prep` cuando el pedido mencione pull request, PR, `gh pr create`, base branch o preparacion de entrega para revision.
 - Cargar `release-checklist` cuando el pedido mencione release, checklist, QA manual, readiness o entrega.
 - Cargar `skill-creator` cuando el pedido mencione crear skills, agentes, instrucciones AI, workflow reusable o actualizar `AGENTS.md`.
 - Cargar `skill-sync` despues de crear o tocar skills, o cuando el pedido mencione sincronizar metadata, validar AGENTS o revisar coherencia del catalogo de skills.
