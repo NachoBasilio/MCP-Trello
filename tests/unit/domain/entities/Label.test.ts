@@ -6,9 +6,15 @@ import {
   type Label,
 } from '../../../../src/domain/entities/Label.js';
 
-describe('Label Entity', () => {
-  describe('LabelSchema', () => {
-    it('should parse a valid label', () => {
+/**
+ * Cubre el contrato de labels y el set de colores validos expuestos por el dominio.
+ */
+describe('Entidad Label', () => {
+  /**
+   * Verifica el schema de labels y los campos requeridos para persistirlos.
+   */
+  describe('Esquema de labels', () => {
+    it('debe parsear un label valido', () => {
       const label = {
         id: 'label123',
         name: 'bug',
@@ -19,7 +25,7 @@ describe('Label Entity', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should reject label without id', () => {
+    it('debe rechazar un label sin id', () => {
       const label = {
         name: 'bug',
         color: 'red',
@@ -29,7 +35,7 @@ describe('Label Entity', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject label without name', () => {
+    it('debe rechazar un label sin nombre', () => {
       const label = {
         id: 'label123',
         color: 'red',
@@ -40,8 +46,11 @@ describe('Label Entity', () => {
     });
   });
 
-  describe('createLabel factory', () => {
-    it('should create a label with all fields', () => {
+  /**
+   * Confirma que la fabrica devuelva la entidad label sin perder datos.
+   */
+  describe('Fabrica de labels', () => {
+    it('debe crear un label con todos sus campos', () => {
       const label: Label = createLabel({
         id: 'label123',
         name: 'urgent',
@@ -54,8 +63,11 @@ describe('Label Entity', () => {
     });
   });
 
+  /**
+   * Valida que la lista de colores soportados refleje el contrato conocido de Trello.
+   */
   describe('TRELLO_LABEL_COLORS', () => {
-    it('should contain all valid Trello colors', () => {
+    it('debe contener todos los colores validos de Trello', () => {
       expect(TRELLO_LABEL_COLORS).toContain('blue');
       expect(TRELLO_LABEL_COLORS).toContain('green');
       expect(TRELLO_LABEL_COLORS).toContain('red');

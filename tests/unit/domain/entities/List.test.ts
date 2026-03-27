@@ -1,9 +1,15 @@
 import { describe, it, expect } from 'vitest';
-import { List, ListSchema, createList } from '@entities/List.js';
+import { ListSchema, createList } from '../../../../src/domain/entities/List.js';
 
-describe('List Entity', () => {
-  describe('ListSchema', () => {
-    it('should parse a valid list', () => {
+/**
+ * Cubre la validacion estructural de listas y la fabrica del agregado de dominio.
+ */
+describe('Entidad List', () => {
+  /**
+   * Verifica el schema de listas con sus campos obligatorios.
+   */
+  describe('Esquema de listas', () => {
+    it('debe parsear una lista valida', () => {
       const list = {
         id: 'list123',
         name: 'To Do',
@@ -14,7 +20,7 @@ describe('List Entity', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should reject list without id', () => {
+    it('debe rechazar una lista sin id', () => {
       const list = {
         name: 'To Do',
         boardId: 'board123',
@@ -24,7 +30,7 @@ describe('List Entity', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject list without name', () => {
+    it('debe rechazar una lista sin nombre', () => {
       const list = {
         id: 'list123',
         boardId: 'board123',
@@ -35,8 +41,11 @@ describe('List Entity', () => {
     });
   });
 
-  describe('createList factory', () => {
-    it('should create a list with all fields', () => {
+  /**
+   * Confirma que la fabrica mantenga id, nombre y boardId sin alteraciones.
+   */
+  describe('Fabrica de listas', () => {
+    it('debe crear una lista con todos sus campos', () => {
       const list = createList({
         id: 'list123',
         name: 'In Progress',

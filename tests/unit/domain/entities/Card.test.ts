@@ -2,9 +2,15 @@ import { describe, it, expect } from 'vitest';
 import { Card, CardSchema, createCard } from '../../../../src/domain/entities/Card.js';
 import { createLabel } from '../../../../src/domain/entities/Label.js';
 
-describe('Card Entity', () => {
-  describe('CardSchema', () => {
-    it('should parse a valid card', () => {
+/**
+ * Cubre el contrato estructural de tarjetas y los defaults aplicados por la fabrica.
+ */
+describe('Entidad Card', () => {
+  /**
+   * Verifica el schema de tarjetas, incluyendo campos opcionales y obligatorios.
+   */
+  describe('Esquema de cards', () => {
+    it('debe parsear una tarjeta valida', () => {
       const card = {
         id: 'card123',
         name: 'Test Card',
@@ -22,7 +28,7 @@ describe('Card Entity', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should accept card without optional fields', () => {
+    it('debe aceptar una tarjeta sin campos opcionales', () => {
       const card = {
         id: 'card123',
         name: 'Test Card',
@@ -40,7 +46,7 @@ describe('Card Entity', () => {
       }
     });
 
-    it('should reject card without id', () => {
+    it('debe rechazar una tarjeta sin id', () => {
       const card = {
         name: 'Test Card',
         listId: 'list123',
@@ -52,7 +58,7 @@ describe('Card Entity', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject card without name', () => {
+    it('debe rechazar una tarjeta sin nombre', () => {
       const card = {
         id: 'card123',
         listId: 'list123',
@@ -65,8 +71,11 @@ describe('Card Entity', () => {
     });
   });
 
-  describe('createCard factory', () => {
-    it('should create a card with all fields', () => {
+  /**
+   * Confirma que la fabrica complete tanto datos provistos como valores por defecto.
+   */
+  describe('Fabrica de cards', () => {
+    it('debe crear una tarjeta con todos sus campos', () => {
       const card = createCard({
         id: 'card123',
         name: 'Test Card',
@@ -92,7 +101,7 @@ describe('Card Entity', () => {
       expect(card.closed).toBe(false);
     });
 
-    it('should create a card with default optional values', () => {
+    it('debe crear una tarjeta con valores opcionales por defecto', () => {
       const card = createCard({
         id: 'card123',
         name: 'Test Card',

@@ -8,14 +8,24 @@ import {
   createLabel,
 } from '../../../src/domain/index.js';
 
-describe('Domain public barrel exports', () => {
-  it('should export the canonical label API', () => {
+/**
+ * Verifica que el barrel publico del dominio exponga las APIs canonicas para
+ * entidades y value objects consumidos por el resto del proyecto.
+ */
+describe('Exports publicos del dominio', () => {
+  /**
+   * Valida que los exports de labels mantengan el contrato publico esperado.
+   */
+  it('debe exportar la API canonica de labels', () => {
     const label = createLabel({ id: 'label123', name: 'bug', color: 'red' });
 
     expect(LabelSchema.parse(label)).toEqual(label);
   });
 
-  it('should export the comment entity API', () => {
+  /**
+   * Confirma que la entidad Comment siga disponible desde el barrel principal.
+   */
+  it('debe exportar la API de la entidad comment', () => {
     const comment = createComment({
       id: 'comment123',
       text: 'Assigned to Nacho',
@@ -26,7 +36,10 @@ describe('Domain public barrel exports', () => {
     expect(CommentSchema.parse(comment)).toEqual(comment);
   });
 
-  it('should export card query value objects', () => {
+  /**
+   * Asegura que el value object de busqueda de tarjetas quede expuesto desde el barrel.
+   */
+  it('debe exportar los value objects de consulta de tarjetas', () => {
     const query = CardQueryVO.create({ query: 'a' });
 
     expect(query.matchesCardName('AuthenticationService')).toBe(true);

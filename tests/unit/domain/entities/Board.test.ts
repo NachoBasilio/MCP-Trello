@@ -1,9 +1,15 @@
 import { describe, it, expect } from 'vitest';
-import { Board, BoardSchema, createBoard } from '@entities/Board.js';
+import { BoardSchema, createBoard } from '../../../../src/domain/entities/Board.js';
 
-describe('Board Entity', () => {
-  describe('BoardSchema', () => {
-    it('should parse a valid board', () => {
+/**
+ * Cubre el contrato estructural de boards y la fabrica que aplica defaults.
+ */
+describe('Entidad Board', () => {
+  /**
+   * Verifica el schema de boards con campos requeridos y opcionales.
+   */
+  describe('Esquema de boards', () => {
+    it('debe parsear un board valido', () => {
       const board = {
         id: 'board123',
         name: 'My Board',
@@ -16,7 +22,7 @@ describe('Board Entity', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should accept board without optional fields', () => {
+    it('debe aceptar un board sin campos opcionales', () => {
       const board = {
         id: 'board123',
         name: 'My Board',
@@ -30,7 +36,7 @@ describe('Board Entity', () => {
       }
     });
 
-    it('should reject board without id', () => {
+    it('debe rechazar un board sin id', () => {
       const board = {
         name: 'My Board',
       };
@@ -40,8 +46,11 @@ describe('Board Entity', () => {
     });
   });
 
-  describe('createBoard factory', () => {
-    it('should create a board with all fields', () => {
+  /**
+   * Confirma que la fabrica de boards preserve todos los datos recibidos.
+   */
+  describe('Fabrica de boards', () => {
+    it('debe crear un board con todos sus campos', () => {
       const board = createBoard({
         id: 'board123',
         name: 'My Board',

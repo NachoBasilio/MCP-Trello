@@ -6,9 +6,15 @@ import {
   type Comment,
 } from '../../../../src/domain/entities/Comment.js';
 
-describe('Comment Entity', () => {
-  describe('CommentSchema', () => {
-    it('should parse a valid comment', () => {
+/**
+ * Cubre la validacion estructural y la fabrica de comentarios del dominio.
+ */
+describe('Entidad Comment', () => {
+  /**
+   * Verifica que el schema acepte comentarios validos y rechace fechas invalidas.
+   */
+  describe('Esquema de comments', () => {
+    it('debe parsear un comentario valido', () => {
       const comment = {
         id: 'comment123',
         text: 'Assigned to Nacho',
@@ -20,7 +26,7 @@ describe('Comment Entity', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should reject an invalid comment date', () => {
+    it('debe rechazar una fecha invalida en el comentario', () => {
       const comment = {
         id: 'comment123',
         text: 'Assigned to Nacho',
@@ -33,8 +39,11 @@ describe('Comment Entity', () => {
     });
   });
 
-  describe('createComment factory', () => {
-    it('should create a comment with all fields', () => {
+  /**
+   * Confirma que la fabrica preserve todos los campos del comentario creado.
+   */
+  describe('Fabrica de comments', () => {
+    it('debe crear un comentario con todos sus campos', () => {
       const comment: Comment = createComment({
         id: 'comment123',
         text: 'Assigned to Nacho',
