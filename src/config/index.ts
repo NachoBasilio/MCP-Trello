@@ -5,8 +5,11 @@ import { z as zod } from 'zod';
 import { DomainError, ErrorCode } from '../domain/index.js';
 
 const environmentSchema = zod.object({
-  TRELLO_API_KEY: zod.string().trim().min(1, 'TRELLO_API_KEY is required'),
-  TRELLO_TOKEN: zod.string().trim().min(1, 'TRELLO_TOKEN is required'),
+  TRELLO_API_KEY: zod
+    .string({ required_error: 'TRELLO_API_KEY is required' })
+    .trim()
+    .min(1, 'TRELLO_API_KEY is required'),
+  TRELLO_TOKEN: zod.string({ required_error: 'TRELLO_TOKEN is required' }).trim().min(1, 'TRELLO_TOKEN is required'),
   TRELLO_DEFAULT_BOARD_ID: zod.string().trim().min(1, 'TRELLO_DEFAULT_BOARD_ID cannot be empty').optional(),
   TRELLO_API_BASE_URL: zod.string().trim().url('TRELLO_API_BASE_URL must be a valid URL').default('https://api.trello.com/1'),
 });
