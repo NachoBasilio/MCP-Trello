@@ -50,9 +50,14 @@ The MCP server exposes Trello capabilities via the Model Context Protocol. Each 
 
 ## Dependencies
 
+- `mcp-bootstrap-opencode` must complete bootstrap/source-of-truth alignment before this change can claim MCP runtime readiness
 - TRELLO_API_KEY and TRELLO_TOKEN environment variables configured
 - Valid TRELLO_DEFAULT_BOARD_ID or single board accessible for auto-discovery
 - `@modelcontextprotocol/sdk` for MCP server implementation
+
+## Dependency Note
+
+This change defines a target Trello contract on top of an existing minimal MCP bootstrap. The repository now has a runnable `stdio` bootstrap plus the diagnostic tool `bootstrap.status`, but it still lacks Trello runtime, Trello tools/resources, and Trello adapters. This change therefore remains downstream contract/runtime work rather than evidence of a Trello-ready server.
 
 ## Success Criteria
 

@@ -13,8 +13,9 @@
 1. Solicitud explicita del usuario.
 2. Este `AGENTS.md`.
 3. `AGENTS.md` anidados dentro de subdirectorios cuando existan, solo para el scope de esa carpeta.
-4. `README.md`.
-5. `skills/*/SKILL.md`.
+4. `openspec/` para cambios SDD activos, dependencias y artifacts de fase.
+5. `README.md`.
+6. `skills/*/SKILL.md`.
 
 ## Reglas de trabajo
 
@@ -41,6 +42,11 @@
 4. Implementar integraciones Trello detras de adapters puros.
 5. Cubrir contratos, validaciones y casos de error con tests.
 6. Ejecutar checklist de release antes de exponer cambios como listos.
+
+## Evidencia SDD activa
+
+- `openspec/changes/mcp-bootstrap-opencode/` fija la fuente de verdad del bootstrap actual y la diferencia entre foundations existentes y runtime MCP pendiente.
+- `openspec/changes/trello-mcp-tool-contract/` debe leerse como trabajo de contrato downstream, no como evidencia de que el servidor MCP ya este operativo.
 
 ## Skills locales disponibles
 

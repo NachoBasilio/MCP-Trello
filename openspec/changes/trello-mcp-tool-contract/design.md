@@ -4,6 +4,8 @@
 
 Expose 5 MCP tools and 3 MCP resources that wrap Trello API operations via a clean adapter layer. Card queries use fuzzy matching (fuse.js) against card names to improve UX without requiring exact IDs. The architecture follows strict layer separation: MCP handlers delegate to application services, which use domain entities, with Trello API calls happening only in the infrastructure layer.
 
+This is target-state design for Trello runtime work on top of the existing bootstrap. The current repository already has the `mcp-bootstrap-opencode` baseline (`stdio` transport plus `bootstrap.status`), but this design is still downstream because Trello tools/resources and Trello infrastructure are not implemented yet.
+
 ## Architecture Decisions
 
 ### Decision: Layer Separation

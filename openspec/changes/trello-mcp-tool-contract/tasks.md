@@ -1,5 +1,9 @@
 # Tasks: Trello MCP Tool Contract
 
+## Dependency Note
+
+This task plan depends on `mcp-bootstrap-opencode` for bootstrap/source-of-truth alignment. The repository already provides the runnable `stdio` bootstrap (`src/index.ts`, `src/mcp/registry.ts`, `src/mcp/handlers.ts`, `src/application/bootstrap.ts`) plus shared/config foundations, so this change MUST extend that baseline instead of recreating it.
+
 ## Layer 1: Domain
 
 - [x] 1.1 Create `src/domain/errors/DomainError.ts` with `ErrorCode` enum and `DomainError` class
@@ -15,8 +19,8 @@
 
 ## Layer 2: Infrastructure
 
-- [ ] 2.1 Create `src/shared/index.ts` with `Result<T, E>` type, `ok()` and `err()` helpers
-- [ ] 2.2 Create `src/config/index.ts` with Zod env validation (TRELLO_API_KEY, TRELLO_TOKEN, TRELLO_DEFAULT_BOARD_ID, TRELLO_API_BASE_URL)
+- [x] 2.1 Reuse the existing `src/shared/index.ts` foundation and extend it only if Trello runtime needs additional shared helpers
+- [x] 2.2 Reuse the existing `src/config/index.ts` env validation and extend it only if Trello runtime requires extra configuration beyond the bootstrap baseline
 - [ ] 2.3 Create `src/infrastructure/trello/fixtures.ts` with test fixtures for Trello API payloads
 - [ ] 2.4 Create `src/infrastructure/trello/mappers.ts` with TrelloDto → Domain entity mappers
 - [ ] 2.5 Create `src/infrastructure/trello/board-api.ts` with board-related Trello API calls
@@ -49,9 +53,9 @@
 - [ ] 4.6 Create `src/mcp/resources/board-summary.ts` with trello://boards/{id}/summary handler
 - [ ] 4.7 Create `src/mcp/resources/board-overdue.ts` with trello://boards/{id}/overdue handler
 - [ ] 4.8 Create `src/mcp/resources/board-by-label.ts` with trello://boards/{id}/by-label handler
-- [ ] 4.9 Create `src/mcp/registry.ts` with tool/resource registration using MCP SDK
-- [ ] 4.10 Create `src/mcp/handlers.ts` with all handlers wired to use cases
-- [ ] 4.11 Update `src/index.ts` with server bootstrap, config loading, and MCP server startup
+- [ ] 4.9 Extend `src/mcp/registry.ts` with Trello tool/resource registration on top of the bootstrap registry introduced by `mcp-bootstrap-opencode`
+- [ ] 4.10 Extend `src/mcp/handlers.ts` with Trello handlers wired to use cases on top of the bootstrap handler aggregate introduced by `mcp-bootstrap-opencode`
+- [ ] 4.11 Extend `src/index.ts` composition wiring with Trello application/infrastructure dependencies while preserving the bootstrap stdio startup introduced by `mcp-bootstrap-opencode`
 - [ ] 4.12 Add fuse.js dependency for fuzzy matching
 
 ## Layer 5: Testing
@@ -78,7 +82,7 @@ Layer 1 (Domain)
   └─ All Layer 1 tasks must complete before Layer 2
 
 Layer 2 (Infrastructure)
-  └─ 2.1 (shared), 2.2 (config) before all other Infrastructure tasks
+  └─ 2.1 (shared), 2.2 (config) are already satisfied by the bootstrap baseline and must be reused before all other Infrastructure tasks
   └─ 2.4 (mappers) depends on 2.3 (fixtures) and Layer 1 entities
   └─ 2.10 (adapter) depends on 2.4-2.9 (all API files)
   └─ All Layer 2 must complete before Layer 3
@@ -90,6 +94,7 @@ Layer 3 (Application)
 
 Layer 4 (MCP)
   └─ 4.1-4.8 (individual handlers) depend on Layer 3
+  └─ 4.9-4.11 depend on `mcp-bootstrap-opencode` APPLY completion because bootstrap owns the initial entrypoint, registry, and handler boundaries
   └─ 4.9-4.10 (registry, handlers) depend on 4.1-4.8
   └─ 4.11 (index.ts) depends on 4.9-4.10 and 2.2 (config)
 
@@ -102,17 +107,18 @@ Layer 5 (Testing)
 ## Implementation Order
 
 1. **Start with Domain** (1.1-1.9): Entities, value objects, and errors - no external dependencies
-2. **Then Infrastructure foundation** (2.1-2.2): Shared utilities and config - needed by everything else
+2. **Then Infrastructure foundation reuse** (2.1-2.2): Shared utilities and config already exist from the bootstrap and should only be extended if Trello runtime requires it
 3. **Then Infrastructure APIs** (2.3-2.9): Trello API calls and mappers
 4. **Then Infrastructure adapter** (2.10-2.11): Main adapter and types
 5. **Then Application** (3.1-3.9): Ports and all use cases
-6. **Then MCP handlers** (4.1-4.10): Tool and resource handlers
-7. **Then MCP bootstrap** (4.11-4.12): Server entry point
+6. **Then Trello MCP capabilities** (4.1-4.10): Tool/resource handlers plus extensions to the bootstrap registry and handler aggregate
+7. **Then bootstrap composition extension** (4.11-4.12): Wire Trello dependencies into the existing stdio bootstrap and add fuzzy matching support
 8. **Finally Testing** (5.1-5.14): Unit, contract, and integration tests
 
 ## Notes
 
 - Error codes: -32001 (BOARD_ID_REQUIRED), -32002 (CARD_AMBIGUOUS), -32003 (CARD_NOT_FOUND), -32004 (COMMENT_EMPTY), -32005 (BOARD_NOT_FOUND), -32006 (RATE_LIMITED), -32007 (TRELLO_API_ERROR)
+- `mcp-bootstrap-opencode` already owns the first runnable `stdio` entrypoint and the diagnostic-only capability policy; this change extends that wiring with real Trello runtime instead of replacing it.
 - Rate limiting: implement exponential backoff (1s, 2s, 4s) with up to 3 retries
 - Board auto-discovery: if TRELLO_DEFAULT_BOARD_ID unset, call GET /1/members/me?boards=open and use single board if only one exists
 - Fuzzy matching: use fuse.js with threshold 0.4, require minMatchCharLength of 2, AND logic for multiple terms
