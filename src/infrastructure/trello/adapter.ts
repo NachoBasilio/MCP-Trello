@@ -4,26 +4,31 @@ import {
   createBoardIdRequiredError,
   createBoardNotFoundError,
   type Board,
+  type Card,
   type CardSummary,
   type Comment,
   type DomainError,
+  type Label,
+  type List,
 } from '../../domain/index.js';
 import { err, ok, type Result } from '../../shared/index.js';
 
-import type { TrelloAddCommentPort, TrelloBoardPort } from '../../application/ports.js';
+import type { TrelloGateway } from '../../application/ports.js';
 import { fetchMemberBoards } from './board-api.js';
-import { fetchBoardCards } from './card-api.js';
-import { postCardComment } from './comment-api.js';
+import { fetchBoardCards, createTrelloCard, updateTrelloCard } from './card-api.js';
+import { fetchBoardLists, createBoardList } from './list-api.js';
+import { fetchBoardLabels, addLabelToCard, createBoardLabel } from './label-api.js';
+import { postCardComment, fetchCardComments } from './comment-api.js';
 
 type FetchLike = typeof fetch;
 
 /**
- * Crea el adapter completo de Trello con todos los puertos de lectura y escritura.
+ * Crea el adapter completo de Trello implementando el puerto TrelloGateway.
  */
 export const createTrelloSearchCardsAdapter = (
   config: Config,
   fetchImplementation: FetchLike = fetch
-): TrelloAddCommentPort & TrelloBoardPort => {
+): TrelloGateway => {
   return {
     resolveBoardId: async (boardId?: string): Promise<Result<string, DomainError>> => {
       const candidateBoardId = boardId?.trim() || config.TRELLO_DEFAULT_BOARD_ID?.trim();
@@ -104,6 +109,57 @@ export const createTrelloSearchCardsAdapter = (
       }
 
       return err(createBoardIdRequiredError());
+    },
+
+    listBoardLists: async (boardId: string): Promise<Result<List[], DomainError>> => {
+      return fetchBoardLists(config, boardId, fetchImplementation);
+    },
+
+    createList: async (boardId: string, name: string): Promise<Result<List, DomainError>> => {
+      return createBoardList(config, boardId, name, fetchImplementation);
+    },
+
+    createCard: async (input: {
+      name: string;
+      idList: string;
+      description?: string;
+      pos?: string;
+    }): Promise<Result<Card, DomainError>> => {
+      return createTrelloCard(config, input, fetchImplementation);
+    },
+
+    updateCard: async (
+      cardId: string,
+      input: {
+        idList?: string;
+        name?: string;
+        desc?: string;
+        due?: string | null;
+        pos?: string;
+        closed?: boolean;
+      }
+    ): Promise<Result<Card, DomainError>> => {
+      return updateTrelloCard(config, cardId, input, fetchImplementation);
+    },
+
+    listBoardLabels: async (boardId: string): Promise<Result<Label[], DomainError>> => {
+      return fetchBoardLabels(config, boardId, fetchImplementation);
+    },
+
+    addLabel: async (cardId: string, labelId: string): Promise<Result<void, DomainError>> => {
+      return addLabelToCard(config, cardId, labelId, fetchImplementation);
+    },
+
+    createLabel: async (
+      boardId: string,
+      name: string,
+      color: string
+    ): Promise<Result<Label, DomainError>> => {
+      return createBoardLabel(config, boardId, name, color, fetchImplementation);
+    },
+
+    listCardComments: async (cardId: string): Promise<Result<Comment[], DomainError>> => {
+      return fetchCardComments(config, cardId, fetchImplementation);
     },
   };
 };
