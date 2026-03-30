@@ -48,6 +48,8 @@ describe('Caso de uso SearchCards', () => {
     const useCase = createSearchCardsUseCase({
       resolveBoardId: async () => ok('board-1'),
       listCards: async () => ok(cards),
+      listBoards: async () => ok([]),
+      resolveBoard: async () => ok('board-1'),
     });
 
     const result = await useCase.execute({ query: 'FIX auth', limit: 1 });
@@ -69,6 +71,8 @@ describe('Caso de uso SearchCards', () => {
     const useCase = createSearchCardsUseCase({
       resolveBoardId: async () => err(boardIdRequiredError),
       listCards: async () => ok([]),
+      listBoards: async () => ok([]),
+      resolveBoard: async () => err(boardIdRequiredError),
     });
 
     await expect(useCase.execute({ query: 'auth' })).resolves.toEqual(err(boardIdRequiredError));

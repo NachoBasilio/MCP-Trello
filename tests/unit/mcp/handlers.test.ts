@@ -8,7 +8,7 @@ const bootstrapStatusFixture: BootstrapDiagnosticSnapshot = {
   scope: 'bootstrap',
   transport: 'stdio',
   capabilityPolicy: 'diagnostic-plus-search-and-comment',
-  toolNames: ['bootstrap.status', 'trello_search_cards', 'trello_add_comment'],
+  toolNames: ['bootstrap.status', 'trello_search_cards', 'trello_add_comment', 'trello_list_boards'],
   trelloRuntimeAvailable: true,
   trelloWriteRuntimeAvailable: true,
   trelloCredentialsConfigured: true,
@@ -37,15 +37,18 @@ describe('Handlers MCP del bootstrap', () => {
           ok({ id: 'comment-1', text: 'Assigned to Nacho', creator: 'Ignadev', date: '2026-03-29T10:00:00.000Z' })
         ),
       },
+      listBoards: {
+        execute: vi.fn(async () => ok([])),
+      },
       getBootstrapStatus: vi.fn(() => bootstrapStatusFixture),
     };
 
     const handlers = createBootstrapHandlers(dependencies);
 
-    expect(Object.keys(handlers)).toEqual(['diagnosticTool', 'searchCardsTool', 'addCommentTool']);
+    expect(Object.keys(handlers)).toEqual(['diagnosticTool', 'searchCardsTool', 'addCommentTool', 'listBoardsTool']);
     expect(handlers.diagnosticTool.name).toBe('bootstrap.status');
     expect(handlers.diagnosticTool.title).toBe('Estado de bootstrap');
-    expect(handlers.diagnosticTool.description).toContain('search y add-comment');
+    expect(handlers.diagnosticTool.description).toContain('search, add-comment y list-boards');
     expect(handlers.searchCardsTool.name).toBe('trello_search_cards');
     expect(handlers.addCommentTool.name).toBe('trello_add_comment');
   });
@@ -69,6 +72,9 @@ describe('Handlers MCP del bootstrap', () => {
           ok({ id: 'comment-1', text: 'Assigned to Nacho', creator: 'Ignadev', date: '2026-03-29T10:00:00.000Z' })
         ),
       },
+      listBoards: {
+        execute: vi.fn(async () => ok([])),
+      },
       getBootstrapStatus,
     };
 
@@ -84,7 +90,7 @@ describe('Handlers MCP del bootstrap', () => {
           'Bootstrap MCP status',
           '- transport target: stdio',
           '- capability policy: diagnostic-plus-search-and-comment',
-          '- published tools: bootstrap.status, trello_search_cards, trello_add_comment',
+          '- published tools: bootstrap.status, trello_search_cards, trello_add_comment, trello_list_boards',
           '- Trello runtime available: yes',
           '- Trello write runtime available: yes',
           '- Trello credentials configured: yes',
@@ -129,6 +135,9 @@ describe('Handlers MCP del bootstrap', () => {
         execute: vi.fn(async () =>
           ok({ id: 'comment-1', text: 'Assigned to Nacho', creator: 'Ignadev', date: '2026-03-29T10:00:00.000Z' })
         ),
+      },
+      listBoards: {
+        execute: vi.fn(async () => ok([])),
       },
       getBootstrapStatus: vi.fn(() => bootstrapStatusFixture),
     };
@@ -179,6 +188,9 @@ describe('Handlers MCP del bootstrap', () => {
         execute: vi.fn(async () => ok({ boardId: 'board-1', cards: [], truncated: false })),
       },
       addComment,
+      listBoards: {
+        execute: vi.fn(async () => ok([])),
+      },
       getBootstrapStatus: vi.fn(() => bootstrapStatusFixture),
     };
 

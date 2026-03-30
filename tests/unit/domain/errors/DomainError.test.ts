@@ -16,6 +16,7 @@ import {
   createBoardNotFoundError,
   createRateLimitedError,
   createTrelloApiError,
+  createBoardAmbiguousError,
 } from '../../../../src/domain/errors/DomainError.js';
 
 /**
@@ -227,6 +228,22 @@ describe('Errores de dominio (DomainError)', () => {
       expect(error.code).toBe(ErrorCode.TrelloApiError);
       expect(error.message).toBe('Trello API error: Invalid request');
       expect(error.context).toEqual({ status: 400 });
+    });
+  });
+
+  /**
+   * Verifica la fabrica para boards ambiguos con match normalizado exacto.
+   */
+  describe('Fabrica createBoardAmbiguousError', () => {
+    it('debe crear un error BOARD_AMBIGUOUS', () => {
+      const matches = [
+        { id: 'board-1', name: 'Platform Roadmap' },
+        { id: 'board-2', name: 'platform roadmap' },
+      ];
+      const error = createBoardAmbiguousError(matches, 'Platform Roadmap');
+      expect(error.code).toBe(ErrorCode.BoardAmbiguous);
+      expect(error.message).toBe('Ambiguous board name');
+      expect(error.context).toEqual({ matches, searchTerm: 'Platform Roadmap' });
     });
   });
 });
