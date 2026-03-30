@@ -5,37 +5,12 @@ import type { Config } from '../../config/index.js';
 import { err, ok, type Result } from '../../shared/index.js';
 import { type DomainError, createTrelloApiError } from '../../domain/index.js';
 
+import { buildTrelloUrl } from './url.js';
+
 const trelloBoardSchema = zod.object({
   id: zod.string(),
   name: zod.string(),
 });
-
-export type TrelloBoardDto = zod.infer<typeof trelloBoardSchema>;
-
-/**
- * Crea la URL completa para un endpoint de Trello con autenticacion por query params.
- */
-export const buildTrelloBoardApiUrl = (
-  config: Config,
-  pathname: string,
-  query: Record<string, string>
-): string => {
-  const baseUrl = new URL(
-    config.TRELLO_API_BASE_URL.endsWith('/')
-      ? config.TRELLO_API_BASE_URL
-      : `${config.TRELLO_API_BASE_URL}/`
-  );
-  const url = new URL(pathname.replace(/^\//, ''), baseUrl);
-
-  url.searchParams.set('key', config.TRELLO_API_KEY);
-  url.searchParams.set('token', config.TRELLO_TOKEN);
-
-  for (const [key, value] of Object.entries(query)) {
-    url.searchParams.set(key, value);
-  }
-
-  return url.toString();
-};
 
 /**
  * Obtiene todos los boards accesibles del miembro autenticado via `GET /1/members/{id}/boards`.
@@ -50,7 +25,7 @@ export const fetchMemberBoards = async (
   memberId: string = 'me',
   fetchImpl: typeof fetch = fetch
 ): Promise<Result<Board[], DomainError>> => {
-  const url = buildTrelloBoardApiUrl(config, `/members/${memberId}/boards`, {
+  const url = buildTrelloUrl(config, `/members/${memberId}/boards`, {
     fields: 'id,name',
     filter: 'open',
   });
