@@ -8,12 +8,13 @@ import {
 } from '../domain/index.js';
 import { isErr, type Result } from '../shared/index.js';
 
-import type { TrelloAddCommentPort } from './ports.js';
+import type { TrelloAddCommentPort, TrelloBoardPort } from './ports.js';
 
 export interface AddCommentInput {
   cardId?: string;
   cardName?: string;
   boardId?: string;
+  boardName?: string;
   text: string;
 }
 
@@ -24,7 +25,9 @@ export interface AddCommentUseCase {
 /**
  * Agrega comentarios a una tarjeta reutilizando `CardQueryVO` solo cuando hace falta resolver `cardName`.
  */
-export const createAddCommentUseCase = (port: TrelloAddCommentPort): AddCommentUseCase => {
+export const createAddCommentUseCase = (
+  port: TrelloAddCommentPort & TrelloBoardPort
+): AddCommentUseCase => {
   return {
     execute: async (input: AddCommentInput): Promise<Result<Comment, DomainError>> => {
       if (input.text.trim().length === 0) {
@@ -41,7 +44,10 @@ export const createAddCommentUseCase = (port: TrelloAddCommentPort): AddCommentU
         query: input.cardName ?? '',
         boardId: input.boardId,
       });
-      const boardIdResult = await port.resolveBoardId(query.boardId);
+      const boardIdResult = await port.resolveBoard({
+        boardId: query.boardId,
+        boardName: input.boardName,
+      });
 
       if (isErr(boardIdResult)) {
         return boardIdResult;

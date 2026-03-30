@@ -1,11 +1,12 @@
 import { CardQueryVO, type CardSummary, type DomainError } from '../domain/index.js';
 import { isErr, ok, type Result } from '../shared/index.js';
 
-import type { TrelloSearchCardsPort } from './ports.js';
+import type { TrelloBoardPort, TrelloSearchCardsPort } from './ports.js';
 
 export interface SearchCardsInput {
   query: string;
   boardId?: string;
+  boardName?: string;
   limit?: number;
 }
 
@@ -22,11 +23,16 @@ export interface SearchCardsUseCase {
 /**
  * Ejecuta la busqueda read-only reutilizando la semantica del dominio `CardQueryVO`.
  */
-export const createSearchCardsUseCase = (port: TrelloSearchCardsPort): SearchCardsUseCase => {
+export const createSearchCardsUseCase = (
+  port: TrelloSearchCardsPort & TrelloBoardPort
+): SearchCardsUseCase => {
   return {
     execute: async (input: SearchCardsInput): Promise<Result<SearchCardsOutput, DomainError>> => {
       const query = CardQueryVO.create(input);
-      const boardIdResult = await port.resolveBoardId(query.boardId);
+      const boardIdResult = await port.resolveBoard({
+        boardId: query.boardId,
+        boardName: input.boardName,
+      });
 
       if (isErr(boardIdResult)) {
         return boardIdResult;
