@@ -19,7 +19,7 @@ export const bootstrapServerDefinition: BootstrapServerDefinition = {
       tools: {},
     },
     instructions:
-      'Bootstrap MCP local para OpenCode sobre stdio. Expone bootstrap.status, trello_search_cards y trello_add_comment; el resto del runtime de Trello sigue fuera de alcance.',
+      'Bootstrap MCP local para OpenCode sobre stdio. Expone bootstrap.status, trello_search_cards, trello_add_comment y trello_list_boards; el resto del runtime de Trello sigue fuera de alcance.',
   },
 };
 
@@ -59,5 +59,15 @@ export const registerBootstrapCapabilities = (server: McpServer, handlers: Boots
       outputSchema: handlers.addCommentTool.outputSchema,
     },
     handlers.addCommentTool.execute
+  );
+
+  server.registerTool(
+    handlers.listBoardsTool.name,
+    {
+      title: handlers.listBoardsTool.title,
+      description: handlers.listBoardsTool.description,
+      outputSchema: handlers.listBoardsTool.outputSchema,
+    },
+    handlers.listBoardsTool.execute
   );
 };
