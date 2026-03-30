@@ -21,13 +21,13 @@ This task plan depends on `mcp-bootstrap-opencode` for bootstrap/source-of-truth
 
 - [x] 2.1 Reuse the existing `src/shared/index.ts` foundation and extend it only if Trello runtime needs additional shared helpers
 - [x] 2.2 Reuse the existing `src/config/index.ts` env validation and extend it only if Trello runtime requires extra configuration beyond the bootstrap baseline
-- [ ] 2.3 Create `src/infrastructure/trello/fixtures.ts` with test fixtures for Trello API payloads
-- [ ] 2.4 Create `src/infrastructure/trello/mappers.ts` with TrelloDto → Domain entity mappers
+- [x] 2.3 Create `src/infrastructure/trello/fixtures.ts` with test fixtures for Trello API payloads
+- [x] 2.4 Create `src/infrastructure/trello/mappers.ts` with TrelloDto → Domain entity mappers
 - [x] 2.5 Create `src/infrastructure/trello/board-api.ts` with board-related Trello API calls
-- [ ] 2.6 Create `src/infrastructure/trello/list-api.ts` with list-related Trello API calls
-- [ ] 2.7 Create `src/infrastructure/trello/card-api.ts` with card CRUD Trello API calls
-- [ ] 2.8 Create `src/infrastructure/trello/label-api.ts` with label Trello API calls
-- [ ] 2.9 Create `src/infrastructure/trello/comment-api.ts` with comment Trello API calls
+- [x] 2.6 Create `src/infrastructure/trello/list-api.ts` with list-related Trello API calls
+- [x] 2.7 Create `src/infrastructure/trello/card-api.ts` with card CRUD Trello API calls
+- [x] 2.8 Create `src/infrastructure/trello/label-api.ts` with label Trello API calls
+- [x] 2.9 Create `src/infrastructure/trello/comment-api.ts` with comment Trello API calls
 - [x] 2.10 Create `src/infrastructure/trello/adapter.ts` with the minimum read-only adapter needed for `trello_search_cards`
 - [x] 2.11 Create `src/types/tool-contract.ts` with the minimum Zod schemas needed for the implemented tool slice
 - [x] 2.12 Extend `src/infrastructure/trello/adapter.ts` with board listing + deterministic board resolution support using `GET /1/members/{id}/boards` and no silent fallback from failed `boardName`
