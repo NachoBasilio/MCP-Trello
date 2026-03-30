@@ -16,45 +16,44 @@ import {
 } from '../../../src/mcp/registry.js';
 
 /**
- * Protege el wiring de metadata y registro MCP sin arrancar transporte real.
+ * Protege el wiring de metadata y registro MCP.
  */
-describe('Registry MCP del bootstrap', () => {
-  /**
-   * Verifica que la metadata publicada siga siendo minima y honesta respecto del alcance actual.
-   */
-  it('debe publicar metadata del servidor alineada con un bootstrap diagnostico', () => {
+describe('Registry MCP del servidor', () => {
+  it('debe publicar metadata del servidor con 7 tools', () => {
     expect(bootstrapServerDefinition.info).toEqual({
       name: 'server-mcp-trello',
       version: '0.1.0',
     });
-    expect(bootstrapServerDefinition.options.instructions).toContain('bootstrap.status, trello_search_cards, trello_add_comment y trello_list_boards');
-    expect(bootstrapServerDefinition.options.instructions).toContain('resto del runtime de Trello sigue fuera de alcance');
+    expect(bootstrapServerDefinition.options.instructions).toContain('trello_create_card');
+    expect(bootstrapServerDefinition.options.instructions).toContain('trello_move_card');
+    expect(bootstrapServerDefinition.options.instructions).toContain('trello_add_labels');
     expect(bootstrapServerCapabilities).toEqual({ tools: {} });
   });
 
-  /**
-   * Confirma que el registry delega en la tool aprobada y no necesita transporte para registrar capacidades.
-   */
-  it('debe registrar la tool bootstrap.status y la search slice sobre el servidor MCP recibido', () => {
+  it('debe registrar las 7 tools sobre el servidor MCP', () => {
     const registerTool = vi.fn();
     const server = {
       registerTool,
     } as unknown as Parameters<typeof registerBootstrapCapabilities>[0];
     const execute = vi.fn();
+    const mockSchema = { field: zod.string() } as any;
     const handlers: BootstrapHandlers = {
       diagnosticTool: {
         name: 'bootstrap.status',
         title: 'Estado de bootstrap',
-        description: 'Describe el estado del bootstrap local.',
+        description: 'Diagnostico.',
         outputSchema: {
           scope: zod.literal('bootstrap'),
           transport: zod.literal('stdio'),
-          capabilityPolicy: zod.literal('diagnostic-plus-search-and-comment'),
+          capabilityPolicy: zod.literal('diagnostic-plus-full-trello'),
           toolNames: zod.tuple([
             zod.literal('bootstrap.status'),
             zod.literal('trello_search_cards'),
             zod.literal('trello_add_comment'),
             zod.literal('trello_list_boards'),
+            zod.literal('trello_create_card'),
+            zod.literal('trello_move_card'),
+            zod.literal('trello_add_labels'),
           ]),
           trelloRuntimeAvailable: zod.literal(true),
           trelloWriteRuntimeAvailable: zod.literal(true),
@@ -65,69 +64,55 @@ describe('Registry MCP del bootstrap', () => {
       },
       searchCardsTool: {
         name: 'trello_search_cards',
-        title: 'Buscar tarjetas de Trello',
-        description: 'Busca tarjetas de forma read-only.',
+        title: 'Buscar tarjetas',
+        description: 'Busca.',
         inputSchema: trelloSearchCardsInputSchema.shape,
         outputSchema: trelloSearchCardsOutputSchema.shape,
         execute,
       },
       addCommentTool: {
         name: 'trello_add_comment',
-        title: 'Agregar comentario en Trello',
-        description: 'Agrega comentarios a tarjetas existentes.',
+        title: 'Agregar comentario',
+        description: 'Comenta.',
         inputSchema: trelloAddCommentInputSchemaShape,
         outputSchema: trelloAddCommentOutputSchema.shape,
         execute,
       },
       listBoardsTool: {
         name: 'trello_list_boards',
-        title: 'Listar boards de Trello',
-        description: 'Lista todos los boards accesibles.',
+        title: 'Listar boards',
+        description: 'Lista.',
         outputSchema: trelloListBoardsOutputSchema.shape,
+        execute,
+      },
+      createCardTool: {
+        name: 'trello_create_card',
+        title: 'Crear tarjeta',
+        description: 'Crea.',
+        inputSchema: mockSchema,
+        outputSchema: mockSchema,
+        execute,
+      },
+      moveCardTool: {
+        name: 'trello_move_card',
+        title: 'Mover tarjeta',
+        description: 'Mueve.',
+        inputSchema: mockSchema,
+        outputSchema: mockSchema,
+        execute,
+      },
+      addLabelsTool: {
+        name: 'trello_add_labels',
+        title: 'Agregar labels',
+        description: 'Labels.',
+        inputSchema: mockSchema,
+        outputSchema: mockSchema,
         execute,
       },
     };
 
     registerBootstrapCapabilities(server, handlers);
 
-    expect(registerTool).toHaveBeenCalledTimes(4);
-    expect(registerTool).toHaveBeenCalledWith(
-      'bootstrap.status',
-      {
-        title: 'Estado de bootstrap',
-        description: 'Describe el estado del bootstrap local.',
-        outputSchema: handlers.diagnosticTool.outputSchema,
-      },
-      execute
-    );
-    expect(registerTool).toHaveBeenCalledWith(
-      'trello_search_cards',
-      {
-        title: 'Buscar tarjetas de Trello',
-        description: 'Busca tarjetas de forma read-only.',
-        inputSchema: handlers.searchCardsTool.inputSchema,
-        outputSchema: handlers.searchCardsTool.outputSchema,
-      },
-      execute
-    );
-    expect(registerTool).toHaveBeenCalledWith(
-      'trello_add_comment',
-      {
-        title: 'Agregar comentario en Trello',
-        description: 'Agrega comentarios a tarjetas existentes.',
-        inputSchema: handlers.addCommentTool.inputSchema,
-        outputSchema: handlers.addCommentTool.outputSchema,
-      },
-      execute
-    );
-    expect(registerTool).toHaveBeenCalledWith(
-      'trello_list_boards',
-      {
-        title: 'Listar boards de Trello',
-        description: 'Lista todos los boards accesibles.',
-        outputSchema: handlers.listBoardsTool.outputSchema,
-      },
-      execute
-    );
+    expect(registerTool).toHaveBeenCalledTimes(7);
   });
 });

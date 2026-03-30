@@ -19,14 +19,14 @@ export const bootstrapServerDefinition: BootstrapServerDefinition = {
       tools: {},
     },
     instructions:
-      'Bootstrap MCP local para OpenCode sobre stdio. Expone bootstrap.status, trello_search_cards, trello_add_comment y trello_list_boards; el resto del runtime de Trello sigue fuera de alcance.',
+      'Servidor MCP para Trello. Expone 7 tools: bootstrap.status, trello_search_cards, trello_add_comment, trello_list_boards, trello_create_card, trello_move_card y trello_add_labels.',
   },
 };
 
 export const bootstrapServerCapabilities: ServerCapabilities = bootstrapServerDefinition.options.capabilities ?? {};
 
 /**
- * Registra las capacidades reales del bootstrap sin mezclar el wiring del SDK en el entrypoint.
+ * Registra todas las capacidades MCP del servidor.
  */
 export const registerBootstrapCapabilities = (server: McpServer, handlers: BootstrapHandlers): void => {
   server.registerTool(
@@ -69,5 +69,38 @@ export const registerBootstrapCapabilities = (server: McpServer, handlers: Boots
       outputSchema: handlers.listBoardsTool.outputSchema,
     },
     handlers.listBoardsTool.execute
+  );
+
+  server.registerTool(
+    handlers.createCardTool.name,
+    {
+      title: handlers.createCardTool.title,
+      description: handlers.createCardTool.description,
+      inputSchema: handlers.createCardTool.inputSchema,
+      outputSchema: handlers.createCardTool.outputSchema,
+    },
+    handlers.createCardTool.execute
+  );
+
+  server.registerTool(
+    handlers.moveCardTool.name,
+    {
+      title: handlers.moveCardTool.title,
+      description: handlers.moveCardTool.description,
+      inputSchema: handlers.moveCardTool.inputSchema,
+      outputSchema: handlers.moveCardTool.outputSchema,
+    },
+    handlers.moveCardTool.execute
+  );
+
+  server.registerTool(
+    handlers.addLabelsTool.name,
+    {
+      title: handlers.addLabelsTool.title,
+      description: handlers.addLabelsTool.description,
+      inputSchema: handlers.addLabelsTool.inputSchema,
+      outputSchema: handlers.addLabelsTool.outputSchema,
+    },
+    handlers.addLabelsTool.execute
   );
 };

@@ -3,18 +3,34 @@ import { z as zod } from 'zod';
 
 import type { ApplicationDependencies, BootstrapDiagnosticSnapshot } from '../application/bootstrap.js';
 import { createAddCommentTool, type AddCommentToolHandler } from './tools/add-comment.js';
+import { createAddLabelsTool, type AddLabelsToolHandler } from './tools/add-labels.js';
+import { createCreateCardTool, type CreateCardToolHandler } from './tools/create-card.js';
 import { createListBoardsTool, type ListBoardsToolHandler } from './tools/list-boards.js';
+import { createMoveCardTool, type MoveCardToolHandler } from './tools/move-card.js';
 import { createSearchCardsTool, type SearchCardsToolHandler } from './tools/search-cards.js';
+
+const allToolNames = [
+  'bootstrap.status',
+  'trello_search_cards',
+  'trello_add_comment',
+  'trello_list_boards',
+  'trello_create_card',
+  'trello_move_card',
+  'trello_add_labels',
+] as const;
 
 const bootstrapStatusOutputSchema = {
   scope: zod.literal('bootstrap'),
   transport: zod.literal('stdio'),
-  capabilityPolicy: zod.literal('diagnostic-plus-search-and-comment'),
+  capabilityPolicy: zod.literal('diagnostic-plus-full-trello'),
   toolNames: zod.tuple([
-    zod.literal('bootstrap.status'),
-    zod.literal('trello_search_cards'),
-    zod.literal('trello_add_comment'),
-    zod.literal('trello_list_boards'),
+    zod.literal(allToolNames[0]),
+    zod.literal(allToolNames[1]),
+    zod.literal(allToolNames[2]),
+    zod.literal(allToolNames[3]),
+    zod.literal(allToolNames[4]),
+    zod.literal(allToolNames[5]),
+    zod.literal(allToolNames[6]),
   ]),
   trelloRuntimeAvailable: zod.literal(true),
   trelloWriteRuntimeAvailable: zod.literal(true),
@@ -35,6 +51,9 @@ export interface BootstrapHandlers {
   searchCardsTool: SearchCardsToolHandler;
   addCommentTool: AddCommentToolHandler;
   listBoardsTool: ListBoardsToolHandler;
+  createCardTool: CreateCardToolHandler;
+  moveCardTool: MoveCardToolHandler;
+  addLabelsTool: AddLabelsToolHandler;
 }
 
 const formatBootstrapStatusText = (status: BootstrapDiagnosticSnapshot): string => {
@@ -51,14 +70,14 @@ const formatBootstrapStatusText = (status: BootstrapDiagnosticSnapshot): string 
 };
 
 /**
- * Agrupa los handlers MCP del bootstrap inicial sin depender todavia de adapters de Trello.
+ * Agrupa todos los handlers MCP del servidor.
  */
 export const createBootstrapHandlers = (dependencies: ApplicationDependencies): BootstrapHandlers => {
   return {
     diagnosticTool: {
       name: 'bootstrap.status',
       title: 'Estado de bootstrap',
-      description: 'Expone el estado diagnostico del bootstrap MCP local y deja explicito que hoy solo existen search, add-comment y list-boards como slices Trello reales.',
+      description: 'Expone el estado diagnostico del servidor MCP con todas las tools Trello activas.',
       outputSchema: bootstrapStatusOutputSchema,
       execute: async (): Promise<CallToolResult> => {
         const status = dependencies.getBootstrapStatus();
@@ -77,5 +96,8 @@ export const createBootstrapHandlers = (dependencies: ApplicationDependencies): 
     searchCardsTool: createSearchCardsTool(dependencies.searchCards),
     addCommentTool: createAddCommentTool(dependencies.addComment),
     listBoardsTool: createListBoardsTool(dependencies.listBoards),
+    createCardTool: createCreateCardTool(dependencies.createCard),
+    moveCardTool: createMoveCardTool(dependencies.moveCard),
+    addLabelsTool: createAddLabelsTool(dependencies.addLabels),
   };
 };

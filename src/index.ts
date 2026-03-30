@@ -2,8 +2,11 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 
 import { createAddCommentUseCase } from './application/add-comment.js';
+import { createAddLabelsUseCase } from './application/add-labels.js';
 import { createApplicationDependencies } from './application/bootstrap.js';
+import { createCreateCardUseCase } from './application/create-card.js';
 import { createListBoardsUseCase } from './application/list-boards.js';
+import { createMoveCardUseCase } from './application/move-card.js';
 import { createSearchCardsUseCase } from './application/search-cards.js';
 import { loadConfig } from './config/index.js';
 import { isDomainError } from './domain/index.js';
@@ -27,7 +30,7 @@ const formatFatalStartupError = (error: unknown): string => {
 };
 
 /**
- * Arranca el bootstrap MCP local para OpenCode sobre `stdio` usando solo las capacidades diagnosticas reales del repo.
+ * Arranca el servidor MCP con todas las capacidades Trello activas.
  */
 const main = async (): Promise<void> => {
   const config = loadConfig();
@@ -35,7 +38,17 @@ const main = async (): Promise<void> => {
   const searchCards = createSearchCardsUseCase(trelloGateway);
   const addComment = createAddCommentUseCase(trelloGateway);
   const listBoards = createListBoardsUseCase(trelloGateway);
-  const dependencies = createApplicationDependencies(config, { searchCards, addComment, listBoards });
+  const createCard = createCreateCardUseCase(trelloGateway);
+  const moveCard = createMoveCardUseCase(trelloGateway);
+  const addLabels = createAddLabelsUseCase(trelloGateway);
+  const dependencies = createApplicationDependencies(config, {
+    searchCards,
+    addComment,
+    listBoards,
+    createCard,
+    moveCard,
+    addLabels,
+  });
   const handlers = createBootstrapHandlers(dependencies);
   const server = new McpServer(bootstrapServerDefinition.info, bootstrapServerDefinition.options);
 
