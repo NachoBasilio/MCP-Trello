@@ -22,16 +22,20 @@ describe('Caso de uso AddComment', () => {
     );
     const resolveBoardId = vi.fn();
     const listCards = vi.fn();
+    const listBoards = vi.fn();
+    const resolveBoard = vi.fn();
     const useCase = createAddCommentUseCase({
       resolveBoardId,
       listCards,
       addComment,
+      listBoards,
+      resolveBoard,
     });
 
     const result = await useCase.execute({ cardId: 'card-1', text: 'Assigned to Nacho' });
 
     expect(addComment).toHaveBeenCalledWith('card-1', 'Assigned to Nacho');
-    expect(resolveBoardId).not.toHaveBeenCalled();
+    expect(resolveBoard).not.toHaveBeenCalled();
     expect(listCards).not.toHaveBeenCalled();
     expect(result).toEqual(
       ok({
@@ -53,6 +57,8 @@ describe('Caso de uso AddComment', () => {
       addComment: vi.fn(async () => {
         throw new Error('No deberia ejecutarse');
       }),
+      listBoards: vi.fn(async () => ok([])),
+      resolveBoard: vi.fn(async () => ok('board-1')),
     });
 
     const result = await useCase.execute({ cardName: 'Task', text: '   ' });
@@ -98,6 +104,8 @@ describe('Caso de uso AddComment', () => {
       resolveBoardId: vi.fn(async () => ok('board-1')),
       listCards: vi.fn(async () => ok(cards)),
       addComment,
+      listBoards: vi.fn(async () => ok([])),
+      resolveBoard: vi.fn(async () => ok('board-1')),
     });
 
     const result = await useCase.execute({ cardName: 'login', text: 'Assigned to Nacho' });

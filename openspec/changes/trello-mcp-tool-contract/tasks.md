@@ -23,14 +23,14 @@ This task plan depends on `mcp-bootstrap-opencode` for bootstrap/source-of-truth
 - [x] 2.2 Reuse the existing `src/config/index.ts` env validation and extend it only if Trello runtime requires extra configuration beyond the bootstrap baseline
 - [ ] 2.3 Create `src/infrastructure/trello/fixtures.ts` with test fixtures for Trello API payloads
 - [ ] 2.4 Create `src/infrastructure/trello/mappers.ts` with TrelloDto → Domain entity mappers
-- [ ] 2.5 Create `src/infrastructure/trello/board-api.ts` with board-related Trello API calls
+- [x] 2.5 Create `src/infrastructure/trello/board-api.ts` with board-related Trello API calls
 - [ ] 2.6 Create `src/infrastructure/trello/list-api.ts` with list-related Trello API calls
 - [ ] 2.7 Create `src/infrastructure/trello/card-api.ts` with card CRUD Trello API calls
 - [ ] 2.8 Create `src/infrastructure/trello/label-api.ts` with label Trello API calls
 - [ ] 2.9 Create `src/infrastructure/trello/comment-api.ts` with comment Trello API calls
 - [x] 2.10 Create `src/infrastructure/trello/adapter.ts` with the minimum read-only adapter needed for `trello_search_cards`
 - [x] 2.11 Create `src/types/tool-contract.ts` with the minimum Zod schemas needed for the implemented tool slice
-- [ ] 2.12 Extend `src/infrastructure/trello/adapter.ts` with board listing + deterministic board resolution support using `GET /1/members/{id}/boards` and no silent fallback from failed `boardName`
+- [x] 2.12 Extend `src/infrastructure/trello/adapter.ts` with board listing + deterministic board resolution support using `GET /1/members/{id}/boards` and no silent fallback from failed `boardName`
 
 ## Layer 3: Application
 
@@ -60,7 +60,8 @@ This task plan depends on `mcp-bootstrap-opencode` for bootstrap/source-of-truth
 - [x] 4.11 Extend `src/index.ts` composition wiring with the minimum Trello search dependencies while preserving the bootstrap stdio startup introduced by `mcp-bootstrap-opencode`
 - [x] 4.12 Reuse `CardQuery` semantics for matching and explicitly avoid adding `fuse.js` in this batch
 - [x] 4.13 Extend the existing Trello adapter/wiring with the minimum add-comment path without claiming broader write support
-- [ ] 4.14 Extend `src/types/tool-contract.ts`, `src/mcp/tools/search-cards.ts`, and `src/mcp/tools/add-comment.ts` so the active runtime contract accepts optional `boardName` without overstating support in other pending tools
+- [x] 4.14 Extend `src/types/tool-contract.ts`, `src/mcp/tools/search-cards.ts`, and `src/mcp/tools/add-comment.ts` so the active runtime contract accepts optional `boardName` without overstating support in other pending tools
+- [x] 4.15 Create `trello_list_boards` MCP tool for listing all accessible boards (handler + use case + wiring)
 
 ## Layer 5: Testing
 

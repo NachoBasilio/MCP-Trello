@@ -3,6 +3,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 
 import { createAddCommentUseCase } from './application/add-comment.js';
 import { createApplicationDependencies } from './application/bootstrap.js';
+import { createListBoardsUseCase } from './application/list-boards.js';
 import { createSearchCardsUseCase } from './application/search-cards.js';
 import { loadConfig } from './config/index.js';
 import { isDomainError } from './domain/index.js';
@@ -33,7 +34,8 @@ const main = async (): Promise<void> => {
   const trelloGateway = createTrelloSearchCardsAdapter(config);
   const searchCards = createSearchCardsUseCase(trelloGateway);
   const addComment = createAddCommentUseCase(trelloGateway);
-  const dependencies = createApplicationDependencies(config, { searchCards, addComment });
+  const listBoards = createListBoardsUseCase(trelloGateway);
+  const dependencies = createApplicationDependencies(config, { searchCards, addComment, listBoards });
   const handlers = createBootstrapHandlers(dependencies);
   const server = new McpServer(bootstrapServerDefinition.info, bootstrapServerDefinition.options);
 

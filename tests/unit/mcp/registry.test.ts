@@ -5,6 +5,7 @@ import type { BootstrapHandlers } from '../../../src/mcp/handlers.js';
 import {
   trelloAddCommentInputSchemaShape,
   trelloAddCommentOutputSchema,
+  trelloListBoardsOutputSchema,
   trelloSearchCardsInputSchema,
   trelloSearchCardsOutputSchema,
 } from '../../../src/types/tool-contract.js';
@@ -26,7 +27,7 @@ describe('Registry MCP del bootstrap', () => {
       name: 'server-mcp-trello',
       version: '0.1.0',
     });
-    expect(bootstrapServerDefinition.options.instructions).toContain('bootstrap.status, trello_search_cards y trello_add_comment');
+    expect(bootstrapServerDefinition.options.instructions).toContain('bootstrap.status, trello_search_cards, trello_add_comment y trello_list_boards');
     expect(bootstrapServerDefinition.options.instructions).toContain('resto del runtime de Trello sigue fuera de alcance');
     expect(bootstrapServerCapabilities).toEqual({ tools: {} });
   });
@@ -53,6 +54,7 @@ describe('Registry MCP del bootstrap', () => {
             zod.literal('bootstrap.status'),
             zod.literal('trello_search_cards'),
             zod.literal('trello_add_comment'),
+            zod.literal('trello_list_boards'),
           ]),
           trelloRuntimeAvailable: zod.literal(true),
           trelloWriteRuntimeAvailable: zod.literal(true),
@@ -77,11 +79,18 @@ describe('Registry MCP del bootstrap', () => {
         outputSchema: trelloAddCommentOutputSchema.shape,
         execute,
       },
+      listBoardsTool: {
+        name: 'trello_list_boards',
+        title: 'Listar boards de Trello',
+        description: 'Lista todos los boards accesibles.',
+        outputSchema: trelloListBoardsOutputSchema.shape,
+        execute,
+      },
     };
 
     registerBootstrapCapabilities(server, handlers);
 
-    expect(registerTool).toHaveBeenCalledTimes(3);
+    expect(registerTool).toHaveBeenCalledTimes(4);
     expect(registerTool).toHaveBeenCalledWith(
       'bootstrap.status',
       {
@@ -108,6 +117,15 @@ describe('Registry MCP del bootstrap', () => {
         description: 'Agrega comentarios a tarjetas existentes.',
         inputSchema: handlers.addCommentTool.inputSchema,
         outputSchema: handlers.addCommentTool.outputSchema,
+      },
+      execute
+    );
+    expect(registerTool).toHaveBeenCalledWith(
+      'trello_list_boards',
+      {
+        title: 'Listar boards de Trello',
+        description: 'Lista todos los boards accesibles.',
+        outputSchema: handlers.listBoardsTool.outputSchema,
       },
       execute
     );

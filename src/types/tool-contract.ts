@@ -3,6 +3,7 @@ import { z as zod } from 'zod';
 export const trelloSearchCardsInputSchema = zod.object({
   query: zod.string().trim().min(1, 'Query cannot be empty'),
   boardId: zod.string().trim().min(1, 'boardId cannot be empty').optional(),
+  boardName: zod.string().trim().min(1, 'boardName cannot be empty').optional(),
   limit: zod.number().int().min(1).max(50).optional().default(10),
 });
 
@@ -27,6 +28,7 @@ export const trelloAddCommentInputSchemaShape = {
   cardId: zod.string().trim().min(1, 'cardId cannot be empty').optional(),
   cardName: zod.string().trim().min(1, 'cardName cannot be empty').optional(),
   boardId: zod.string().trim().min(1, 'boardId cannot be empty').optional(),
+  boardName: zod.string().trim().min(1, 'boardName cannot be empty').optional(),
   text: zod.string().refine((value) => value.trim().length > 0, 'Comment text cannot be empty'),
 } as const;
 
@@ -44,7 +46,17 @@ export const trelloAddCommentOutputSchema = zod.object({
   date: zod.string().datetime(),
 });
 
+export const trelloListBoardsOutputSchema = zod.object({
+  boards: zod.array(
+    zod.object({
+      id: zod.string(),
+      name: zod.string(),
+    })
+  ),
+});
+
 export type TrelloSearchCardsInput = zod.infer<typeof trelloSearchCardsInputSchema>;
 export type TrelloSearchCardsOutput = zod.infer<typeof trelloSearchCardsOutputSchema>;
 export type TrelloAddCommentInput = zod.infer<typeof trelloAddCommentInputSchema>;
 export type TrelloAddCommentOutput = zod.infer<typeof trelloAddCommentOutputSchema>;
+export type TrelloListBoardsOutput = zod.infer<typeof trelloListBoardsOutputSchema>;

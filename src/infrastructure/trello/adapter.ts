@@ -3,17 +3,20 @@ import { z as zod } from 'zod';
 import type { Config } from '../../config/index.js';
 import {
   createAuthError,
+  createBoardAmbiguousError,
   createBoardIdRequiredError,
   createBoardNotFoundError,
   createComment,
   createRateLimitedError,
   createTrelloApiError,
+  type Board,
   type CardSummary,
   type DomainError,
 } from '../../domain/index.js';
 import { err, ok, type Result } from '../../shared/index.js';
 
-import type { TrelloAddCommentPort } from '../../application/ports.js';
+import type { TrelloAddCommentPort, TrelloBoardPort } from '../../application/ports.js';
+import { fetchMemberBoards } from './board-api.js';
 
 const trelloCardSchema = zod.object({
   id: zod.string(),
@@ -54,7 +57,7 @@ type FetchLike = typeof fetch;
 export const createTrelloSearchCardsAdapter = (
   config: Config,
   fetchImplementation: FetchLike = fetch
-): TrelloAddCommentPort => {
+): TrelloAddCommentPort & TrelloBoardPort => {
   return {
     resolveBoardId: async (boardId?: string): Promise<Result<string, DomainError>> => {
       const candidateBoardId = boardId?.trim() || config.TRELLO_DEFAULT_BOARD_ID?.trim();
@@ -120,7 +123,92 @@ export const createTrelloSearchCardsAdapter = (
         })
       );
     },
+
+    /**
+     * Lista todos los boards accesibles del miembro autenticado.
+     */
+    listBoards: async (): Promise<Result<Board[], DomainError>> => {
+      return fetchMemberBoards(config, 'me', fetchImplementation);
+    },
+
+    /**
+     * Resuelve el board efectivo siguiendo la precedencia estricta:
+     * 1. boardId si fue provisto
+     * 2. boardName con match exacto normalizado (trim + colapsar espacios + case-insensitive)
+     * 3. TRELLO_DEFAULT_BOARD_ID del config
+     * 4. Auto-discovery solo cuando hay exactamente un board accesible
+     */
+    resolveBoard: async (input: {
+      boardId?: string;
+      boardName?: string;
+    }): Promise<Result<string, DomainError>> => {
+      // 1. boardId explícito tiene prioridad absoluta
+      const explicitBoardId = input.boardId?.trim();
+      if (explicitBoardId) {
+        return ok(explicitBoardId);
+      }
+
+      // 2. boardName requiere listar boards y hacer match exacto normalizado
+      if (input.boardName) {
+        const boardsResult = await fetchMemberBoards(config, 'me', fetchImplementation);
+
+        if (!boardsResult.ok) {
+          return boardsResult;
+        }
+
+        const normalizedName = normalizeBoardName(input.boardName);
+        const matches: Board[] = [];
+
+        for (const board of boardsResult.value) {
+          if (normalizeBoardName(board.name) === normalizedName) {
+            matches.push(board);
+          }
+        }
+
+        if (matches.length === 0) {
+          return err(createBoardNotFoundError());
+        }
+
+        if (matches.length > 1) {
+          return err(
+            createBoardAmbiguousError(
+              matches.map((board) => ({ id: board.id, name: board.name })),
+              input.boardName
+            )
+          );
+        }
+
+        return ok(matches[0].id);
+      }
+
+      // 3. Default board del config
+      const defaultBoardId = config.TRELLO_DEFAULT_BOARD_ID?.trim();
+      if (defaultBoardId) {
+        return ok(defaultBoardId);
+      }
+
+      // 4. Auto-discovery: solo si hay exactamente un board accesible
+      const boardsResult = await fetchMemberBoards(config, 'me', fetchImplementation);
+
+      if (!boardsResult.ok) {
+        return boardsResult;
+      }
+
+      if (boardsResult.value.length === 1) {
+        return ok(boardsResult.value[0].id);
+      }
+
+      return err(createBoardIdRequiredError());
+    },
   };
+};
+
+/**
+ * Normaliza un nombre de board para comparacion deterministica:
+ * trim de espacios externos, colapsar espacios internos multiples, comparar case-insensitive.
+ */
+const normalizeBoardName = (name: string): string => {
+  return name.trim().replace(/\s+/g, ' ').toLowerCase();
 };
 
 const buildTrelloUrl = (config: Config, pathname: string, query: Record<string, string>): string => {

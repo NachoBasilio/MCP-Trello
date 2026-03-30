@@ -1,12 +1,13 @@
 import type { Config } from '../config/index.js';
 import type { AddCommentUseCase } from './add-comment.js';
+import type { ListBoardsUseCase } from './list-boards.js';
 import type { SearchCardsUseCase } from './search-cards.js';
 
 export interface BootstrapDiagnosticSnapshot {
   scope: 'bootstrap';
   transport: 'stdio';
   capabilityPolicy: 'diagnostic-plus-search-and-comment';
-  toolNames: ['bootstrap.status', 'trello_search_cards', 'trello_add_comment'];
+  toolNames: ['bootstrap.status', 'trello_search_cards', 'trello_add_comment', 'trello_list_boards'];
   trelloRuntimeAvailable: true;
   trelloWriteRuntimeAvailable: true;
   trelloCredentialsConfigured: boolean;
@@ -16,12 +17,14 @@ export interface BootstrapDiagnosticSnapshot {
 export interface ApplicationRuntime {
   searchCards: SearchCardsUseCase;
   addComment: AddCommentUseCase;
+  listBoards: ListBoardsUseCase;
 }
 
 export interface ApplicationDependencies {
   config: Config;
   searchCards: SearchCardsUseCase;
   addComment: AddCommentUseCase;
+  listBoards: ListBoardsUseCase;
   getBootstrapStatus: () => BootstrapDiagnosticSnapshot;
 }
 
@@ -33,11 +36,12 @@ export const createApplicationDependencies = (config: Config, runtime: Applicati
     config,
     searchCards: runtime.searchCards,
     addComment: runtime.addComment,
+    listBoards: runtime.listBoards,
     getBootstrapStatus: () => ({
       scope: 'bootstrap',
       transport: 'stdio',
       capabilityPolicy: 'diagnostic-plus-search-and-comment',
-      toolNames: ['bootstrap.status', 'trello_search_cards', 'trello_add_comment'],
+      toolNames: ['bootstrap.status', 'trello_search_cards', 'trello_add_comment', 'trello_list_boards'],
       trelloRuntimeAvailable: true,
       trelloWriteRuntimeAvailable: true,
       trelloCredentialsConfigured: config.TRELLO_API_KEY.length > 0 && config.TRELLO_TOKEN.length > 0,
