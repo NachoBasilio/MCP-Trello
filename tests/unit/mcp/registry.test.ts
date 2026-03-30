@@ -3,6 +3,12 @@ import { z as zod } from 'zod';
 
 import type { BootstrapHandlers } from '../../../src/mcp/handlers.js';
 import {
+  trelloAddCommentInputSchemaShape,
+  trelloAddCommentOutputSchema,
+  trelloSearchCardsInputSchema,
+  trelloSearchCardsOutputSchema,
+} from '../../../src/types/tool-contract.js';
+import {
   bootstrapServerCapabilities,
   bootstrapServerDefinition,
   registerBootstrapCapabilities,
@@ -20,15 +26,15 @@ describe('Registry MCP del bootstrap', () => {
       name: 'server-mcp-trello',
       version: '0.1.0',
     });
-    expect(bootstrapServerDefinition.options.instructions).toContain('Solo expone una tool diagnostica');
-    expect(bootstrapServerDefinition.options.instructions).toContain('todavia no publica runtime de Trello');
+    expect(bootstrapServerDefinition.options.instructions).toContain('bootstrap.status, trello_search_cards y trello_add_comment');
+    expect(bootstrapServerDefinition.options.instructions).toContain('resto del runtime de Trello sigue fuera de alcance');
     expect(bootstrapServerCapabilities).toEqual({ tools: {} });
   });
 
   /**
    * Confirma que el registry delega en la tool aprobada y no necesita transporte para registrar capacidades.
    */
-  it('debe registrar la tool bootstrap.status sobre el servidor MCP recibido', () => {
+  it('debe registrar la tool bootstrap.status y la search slice sobre el servidor MCP recibido', () => {
     const registerTool = vi.fn();
     const server = {
       registerTool,
@@ -42,25 +48,66 @@ describe('Registry MCP del bootstrap', () => {
         outputSchema: {
           scope: zod.literal('bootstrap'),
           transport: zod.literal('stdio'),
-          capabilityPolicy: zod.literal('diagnostic-only'),
-          toolName: zod.literal('bootstrap.status'),
-          trelloRuntimeAvailable: zod.literal(false),
+          capabilityPolicy: zod.literal('diagnostic-plus-search-and-comment'),
+          toolNames: zod.tuple([
+            zod.literal('bootstrap.status'),
+            zod.literal('trello_search_cards'),
+            zod.literal('trello_add_comment'),
+          ]),
+          trelloRuntimeAvailable: zod.literal(true),
+          trelloWriteRuntimeAvailable: zod.literal(true),
           trelloCredentialsConfigured: zod.boolean(),
           defaultBoardConfigured: zod.boolean(),
         },
+        execute,
+      },
+      searchCardsTool: {
+        name: 'trello_search_cards',
+        title: 'Buscar tarjetas de Trello',
+        description: 'Busca tarjetas de forma read-only.',
+        inputSchema: trelloSearchCardsInputSchema.shape,
+        outputSchema: trelloSearchCardsOutputSchema.shape,
+        execute,
+      },
+      addCommentTool: {
+        name: 'trello_add_comment',
+        title: 'Agregar comentario en Trello',
+        description: 'Agrega comentarios a tarjetas existentes.',
+        inputSchema: trelloAddCommentInputSchemaShape,
+        outputSchema: trelloAddCommentOutputSchema.shape,
         execute,
       },
     };
 
     registerBootstrapCapabilities(server, handlers);
 
-    expect(registerTool).toHaveBeenCalledTimes(1);
+    expect(registerTool).toHaveBeenCalledTimes(3);
     expect(registerTool).toHaveBeenCalledWith(
       'bootstrap.status',
       {
         title: 'Estado de bootstrap',
         description: 'Describe el estado del bootstrap local.',
         outputSchema: handlers.diagnosticTool.outputSchema,
+      },
+      execute
+    );
+    expect(registerTool).toHaveBeenCalledWith(
+      'trello_search_cards',
+      {
+        title: 'Buscar tarjetas de Trello',
+        description: 'Busca tarjetas de forma read-only.',
+        inputSchema: handlers.searchCardsTool.inputSchema,
+        outputSchema: handlers.searchCardsTool.outputSchema,
+      },
+      execute
+    );
+    expect(registerTool).toHaveBeenCalledWith(
+      'trello_add_comment',
+      {
+        title: 'Agregar comentario en Trello',
+        description: 'Agrega comentarios a tarjetas existentes.',
+        inputSchema: handlers.addCommentTool.inputSchema,
+        outputSchema: handlers.addCommentTool.outputSchema,
       },
       execute
     );

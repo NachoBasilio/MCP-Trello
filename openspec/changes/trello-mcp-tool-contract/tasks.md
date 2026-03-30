@@ -12,7 +12,7 @@ This task plan depends on `mcp-bootstrap-opencode` for bootstrap/source-of-truth
 - [x] 1.4 Create `src/domain/entities/Label.ts` with Label entity (id, name, color)
 - [x] 1.5 Create `src/domain/entities/List.ts` with List entity (id, name, boardId)
 - [x] 1.6 Create `src/domain/entities/Comment.ts` with Comment entity (id, text, creator, date)
-- [x] 1.7 Create `src/domain/value-objects/CardQuery.ts` with CardQuery VO and fuzzy matching logic
+- [x] 1.7 Create `src/domain/value-objects/CardQuery.ts` with CardQuery VO and substring matching logic
 - [x] 1.8 Create `src/domain/value-objects/ListName.ts` with ListName VO with validation
 - [x] 1.9 Create `src/domain/value-objects/LabelName.ts` with LabelName VO with validation
 - [x] 1.10 Create `src/domain/index.ts` re-exporting all domain entities, VOs, and errors
@@ -28,35 +28,39 @@ This task plan depends on `mcp-bootstrap-opencode` for bootstrap/source-of-truth
 - [ ] 2.7 Create `src/infrastructure/trello/card-api.ts` with card CRUD Trello API calls
 - [ ] 2.8 Create `src/infrastructure/trello/label-api.ts` with label Trello API calls
 - [ ] 2.9 Create `src/infrastructure/trello/comment-api.ts` with comment Trello API calls
-- [ ] 2.10 Create `src/infrastructure/trello/adapter.ts` with TrelloApiAdapter implementing TrelloGateway interface
-- [ ] 2.11 Create `src/types/tool-contract.ts` with Zod schemas for all tool inputs/outputs and resource schemas
+- [x] 2.10 Create `src/infrastructure/trello/adapter.ts` with the minimum read-only adapter needed for `trello_search_cards`
+- [x] 2.11 Create `src/types/tool-contract.ts` with the minimum Zod schemas needed for the implemented tool slice
+- [ ] 2.12 Extend `src/infrastructure/trello/adapter.ts` with board listing + deterministic board resolution support using `GET /1/members/{id}/boards` and no silent fallback from failed `boardName`
 
 ## Layer 3: Application
 
-- [ ] 3.1 Create `src/application/ports.ts` with TrelloGateway interface and DisambiguationResult type
+- [x] 3.1 Create `src/application/ports.ts` with the minimum search port required by the implemented slice
 - [ ] 3.2 Create `src/application/create-card.ts` with CreateCardUseCase (handles implicit list creation)
-- [ ] 3.3 Create `src/application/move-card.ts` with MoveCardUseCase (fuzzy matching + disambiguation)
-- [ ] 3.4 Create `src/application/search-cards.ts` with SearchCardsUseCase (fuzzy search with limit)
+- [ ] 3.3 Create `src/application/move-card.ts` with MoveCardUseCase (CardQuery matching + disambiguation)
+- [x] 3.4 Create `src/application/search-cards.ts` with SearchCardsUseCase using `CardQuery` substring semantics and limit/truncation
 - [ ] 3.5 Create `src/application/add-labels.ts` with AddLabelsUseCase (ADD mode only, implicit label creation)
-- [ ] 3.6 Create `src/application/add-comment.ts` with AddCommentUseCase
+- [x] 3.6 Create `src/application/add-comment.ts` with AddCommentUseCase
 - [ ] 3.7 Create `src/application/board-summary.ts` with BoardSummaryUseCase
 - [ ] 3.8 Create `src/application/board-overdue.ts` with BoardOverdueUseCase (calculate overdueDays)
 - [ ] 3.9 Create `src/application/board-by-label.ts` with BoardByLabelUseCase
+- [ ] 3.10 Replace direct `resolveBoardId` calls in `src/application/search-cards.ts` and `src/application/add-comment.ts` with shared board-resolution input (`boardId`, `boardName`) honoring precedence and explicit board ambiguity/not-found errors
 
 ## Layer 4: MCP
 
 - [ ] 4.1 Create `src/mcp/tools/create-card.ts` with trello_create_card handler
 - [ ] 4.2 Create `src/mcp/tools/move-card.ts` with trello_move_card handler
-- [ ] 4.3 Create `src/mcp/tools/search-cards.ts` with trello_search_cards handler
+- [x] 4.3 Create `src/mcp/tools/search-cards.ts` with trello_search_cards handler
 - [ ] 4.4 Create `src/mcp/tools/add-labels.ts` with trello_add_labels handler
-- [ ] 4.5 Create `src/mcp/tools/add-comment.ts` with trello_add_comment handler
+- [x] 4.5 Create `src/mcp/tools/add-comment.ts` with trello_add_comment handler
 - [ ] 4.6 Create `src/mcp/resources/board-summary.ts` with trello://boards/{id}/summary handler
 - [ ] 4.7 Create `src/mcp/resources/board-overdue.ts` with trello://boards/{id}/overdue handler
 - [ ] 4.8 Create `src/mcp/resources/board-by-label.ts` with trello://boards/{id}/by-label handler
-- [ ] 4.9 Extend `src/mcp/registry.ts` with Trello tool/resource registration on top of the bootstrap registry introduced by `mcp-bootstrap-opencode`
-- [ ] 4.10 Extend `src/mcp/handlers.ts` with Trello handlers wired to use cases on top of the bootstrap handler aggregate introduced by `mcp-bootstrap-opencode`
-- [ ] 4.11 Extend `src/index.ts` composition wiring with Trello application/infrastructure dependencies while preserving the bootstrap stdio startup introduced by `mcp-bootstrap-opencode`
-- [ ] 4.12 Add fuse.js dependency for fuzzy matching
+- [x] 4.9 Extend `src/mcp/registry.ts` with the read-only search tool registration on top of the bootstrap registry introduced by `mcp-bootstrap-opencode`
+- [x] 4.10 Extend `src/mcp/handlers.ts` with the search handler wired to application on top of the bootstrap handler aggregate introduced by `mcp-bootstrap-opencode`
+- [x] 4.11 Extend `src/index.ts` composition wiring with the minimum Trello search dependencies while preserving the bootstrap stdio startup introduced by `mcp-bootstrap-opencode`
+- [x] 4.12 Reuse `CardQuery` semantics for matching and explicitly avoid adding `fuse.js` in this batch
+- [x] 4.13 Extend the existing Trello adapter/wiring with the minimum add-comment path without claiming broader write support
+- [ ] 4.14 Extend `src/types/tool-contract.ts`, `src/mcp/tools/search-cards.ts`, and `src/mcp/tools/add-comment.ts` so the active runtime contract accepts optional `boardName` without overstating support in other pending tools
 
 ## Layer 5: Testing
 
@@ -67,13 +71,15 @@ This task plan depends on `mcp-bootstrap-opencode` for bootstrap/source-of-truth
 - [ ] 5.5 Write unit tests for `src/infrastructure/trello/mappers.ts` - DTO to entity mapping
 - [ ] 5.6 Write contract tests for `src/application/create-card.ts` - implicit list creation scenario
 - [ ] 5.7 Write contract tests for `src/application/move-card.ts` - disambiguation on multiple matches
-- [ ] 5.8 Write contract tests for `src/application/search-cards.ts` - fuzzy matching AND logic
-- [ ] 5.9 Write contract tests for `src/application/add-labels.ts` - ADD mode (not replace)
+- [x] 5.8 Write contract tests for `src/application/search-cards.ts` - substring matching AND logic
+- [x] 5.9 Write minimum contract tests for `src/application/add-comment.ts` - empty text, name resolution, and direct cardId path
 - [ ] 5.10 Write unit tests for `src/application/board-overdue.ts` - overdueDays calculation
 - [ ] 5.11 Write integration tests for `src/mcp/tools/create-card.ts` - full flow from MCP call to Trello API
 - [ ] 5.12 Write integration tests for `src/mcp/tools/move-card.ts` - error -32002 (ambiguous) scenario
 - [ ] 5.13 Write integration tests for `src/mcp/resources/board-summary.ts` - resource response format
-- [ ] 5.14 Write tests for fuzzy matching logic in CardFinder - multiple terms, partial words, special chars escaping
+- [ ] 5.14 Write tests for the Trello search slice boundary - multiple terms, partial words, and limit/truncation across runtime layers
+- [ ] 5.15 Add unit and contract tests for board resolution precedence: explicit `boardId` wins over `boardName`, normalized exact `boardName` match resolves deterministically, failed `boardName` does not fall back, and single-board auto-discovery triggers only when exactly one accessible board exists
+- [ ] 5.16 Add ambiguous-board error coverage for both `trello_search_cards` and `trello_add_comment` when normalized board names match multiple accessible boards
 
 ## Dependencies
 
@@ -112,13 +118,15 @@ Layer 5 (Testing)
 4. **Then Infrastructure adapter** (2.10-2.11): Main adapter and types
 5. **Then Application** (3.1-3.9): Ports and all use cases
 6. **Then Trello MCP capabilities** (4.1-4.10): Tool/resource handlers plus extensions to the bootstrap registry and handler aggregate
-7. **Then bootstrap composition extension** (4.11-4.12): Wire Trello dependencies into the existing stdio bootstrap and add fuzzy matching support
-8. **Finally Testing** (5.1-5.14): Unit, contract, and integration tests
+7. **Then bootstrap composition extension** (4.11-4.12): Wire Trello dependencies into the existing stdio bootstrap and reuse CardQuery matching support
+8. **Finally Testing** (5.1-5.16): Unit, contract, and integration tests
 
 ## Notes
 
-- Error codes: -32001 (BOARD_ID_REQUIRED), -32002 (CARD_AMBIGUOUS), -32003 (CARD_NOT_FOUND), -32004 (COMMENT_EMPTY), -32005 (BOARD_NOT_FOUND), -32006 (RATE_LIMITED), -32007 (TRELLO_API_ERROR)
-- `mcp-bootstrap-opencode` already owns the first runnable `stdio` entrypoint and the diagnostic-only capability policy; this change extends that wiring with real Trello runtime instead of replacing it.
+- Error codes: -32001 (BOARD_ID_REQUIRED), -32002 (CARD_AMBIGUOUS), -32003 (CARD_NOT_FOUND), -32004 (COMMENT_EMPTY), -32005 (BOARD_NOT_FOUND), -32006 (RATE_LIMITED), -32007 (TRELLO_API_ERROR), -32008 (BOARD_AMBIGUOUS)
+- `mcp-bootstrap-opencode` already owns the first runnable `stdio` entrypoint and the initial diagnostic capability policy; this change extends that wiring with the read-only search slice instead of replacing it.
+- The repo now also includes the minimal `trello_add_comment` write slice; metadata must keep marking create/move/add-labels/resources as still pending.
 - Rate limiting: implement exponential backoff (1s, 2s, 4s) with up to 3 retries
-- Board auto-discovery: if TRELLO_DEFAULT_BOARD_ID unset, call GET /1/members/me?boards=open and use single board if only one exists
-- Fuzzy matching: use fuse.js with threshold 0.4, require minMatchCharLength of 2, AND logic for multiple terms
+- Board resolution precedence: `boardId` > `boardName` exact match normalizado > `TRELLO_DEFAULT_BOARD_ID` > single-board auto-discovery via `GET /1/members/{id}/boards`
+- Explicit `boardName` failures must return a deterministic error and MUST NOT silently fall back to a different board
+- Matching strategy: reuse `src/domain/value-objects/CardQuery.ts` (case-insensitive substring + AND logic) and do not add `fuse.js` in this batch

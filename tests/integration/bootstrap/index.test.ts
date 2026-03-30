@@ -91,7 +91,7 @@ describe('Entrypoint del bootstrap MCP', () => {
 
     await vi.waitFor(() => {
       expect(mcpServerConstructorSpy).toHaveBeenCalledTimes(1);
-      expect(registerToolSpy).toHaveBeenCalledTimes(1);
+      expect(registerToolSpy).toHaveBeenCalledTimes(3);
       expect(stdioTransportConstructorSpy).toHaveBeenCalledTimes(1);
       expect(connectSpy).toHaveBeenCalledTimes(1);
     });
@@ -100,14 +100,30 @@ describe('Entrypoint del bootstrap MCP', () => {
       { name: 'server-mcp-trello', version: '0.1.0' },
       expect.objectContaining({
         capabilities: { tools: {} },
-        instructions: expect.stringContaining('Solo expone una tool diagnostica'),
+        instructions: expect.stringContaining('bootstrap.status, trello_search_cards y trello_add_comment'),
       })
     );
     expect(registerToolSpy).toHaveBeenCalledWith(
       'bootstrap.status',
       expect.objectContaining({
         title: 'Estado de bootstrap',
-        description: expect.stringContaining('sin anunciar runtime de Trello'),
+        description: expect.stringContaining('search y add-comment'),
+      }),
+      expect.any(Function)
+    );
+    expect(registerToolSpy).toHaveBeenCalledWith(
+      'trello_search_cards',
+      expect.objectContaining({
+        title: 'Buscar tarjetas de Trello',
+        description: expect.stringContaining('substrings case-insensitive'),
+      }),
+      expect.any(Function)
+    );
+    expect(registerToolSpy).toHaveBeenCalledWith(
+      'trello_add_comment',
+      expect.objectContaining({
+        title: 'Agregar comentario en Trello',
+        description: expect.stringContaining('cardId'),
       }),
       expect.any(Function)
     );

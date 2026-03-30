@@ -1,9 +1,12 @@
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 
+import { createAddCommentUseCase } from './application/add-comment.js';
 import { createApplicationDependencies } from './application/bootstrap.js';
+import { createSearchCardsUseCase } from './application/search-cards.js';
 import { loadConfig } from './config/index.js';
 import { isDomainError } from './domain/index.js';
+import { createTrelloSearchCardsAdapter } from './infrastructure/trello/adapter.js';
 import { createBootstrapHandlers } from './mcp/handlers.js';
 import { bootstrapServerDefinition, registerBootstrapCapabilities } from './mcp/registry.js';
 
@@ -27,7 +30,10 @@ const formatFatalStartupError = (error: unknown): string => {
  */
 const main = async (): Promise<void> => {
   const config = loadConfig();
-  const dependencies = createApplicationDependencies(config);
+  const trelloGateway = createTrelloSearchCardsAdapter(config);
+  const searchCards = createSearchCardsUseCase(trelloGateway);
+  const addComment = createAddCommentUseCase(trelloGateway);
+  const dependencies = createApplicationDependencies(config, { searchCards, addComment });
   const handlers = createBootstrapHandlers(dependencies);
   const server = new McpServer(bootstrapServerDefinition.info, bootstrapServerDefinition.options);
 

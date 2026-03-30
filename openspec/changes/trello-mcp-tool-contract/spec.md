@@ -2,11 +2,61 @@
 
 ## ADDED Requirements
 
+### Requirement: Board Resolution for Board-Scoped Tools
+
+The system SHALL resolve board-scoped tool calls using this precedence: explicit `boardId`, explicit `boardName` with normalized exact match, `TRELLO_DEFAULT_BOARD_ID`, then auto-discovery only when the authenticated member has access to exactly one board.
+
+When `boardId` is present, the system MUST use it and MUST NOT evaluate `boardName`.
+
+When `boardName` is present and `boardId` is absent, the system MUST compare board names using normalized exact matching (trim outer whitespace, collapse repeated internal whitespace, compare case-insensitively).
+
+When `boardName` resolution produces multiple normalized exact matches, the system MUST return error code `-32008` with message "Ambiguous board name".
+
+When explicit `boardName` resolution produces no exact match, the system MUST return `-32005` and MUST NOT silently fall back to `TRELLO_DEFAULT_BOARD_ID` or another accessible board.
+
+When neither `boardId` nor `boardName` is provided and `TRELLO_DEFAULT_BOARD_ID` is unset, the system MAY auto-discover the board only if the authenticated member has access to exactly one board.
+
+Board auto-discovery for this change SHALL rely on Trello member board listing via `GET /1/members/{id}/boards`.
+
+#### Scenario: Explicit boardId wins over boardName
+
+- GIVEN a caller provides both `boardId: "board-123"` and `boardName: "Other board"`
+- WHEN a board-scoped tool resolves the target board
+- THEN the system SHALL use `board-123`
+- AND SHALL NOT evaluate `boardName`
+
+#### Scenario: Resolve board by normalized exact boardName
+
+- GIVEN the authenticated member has access to a board named `Platform Roadmap`
+- WHEN the user invokes a board-scoped tool with `boardName: "  platform   roadmap  "`
+- THEN the system SHALL resolve the board by normalized exact match
+
+#### Scenario: Explicit boardName not found does not fall back
+
+- GIVEN `TRELLO_DEFAULT_BOARD_ID` is set to a valid board ID
+- AND no accessible board matches `boardName: "Ghost board"`
+- WHEN the user invokes a board-scoped tool with `boardName: "Ghost board"`
+- THEN the system SHALL return error code `-32005` with message "Board not found or inaccessible"
+- AND SHALL NOT use `TRELLO_DEFAULT_BOARD_ID`
+
+#### Scenario: Ambiguous normalized boardName
+
+- GIVEN multiple accessible boards match the normalized name `delivery board`
+- WHEN the user invokes a board-scoped tool with `boardName: "Delivery   Board"`
+- THEN the system SHALL return error code `-32008` with message "Ambiguous board name"
+
+#### Scenario: Single-board auto-discovery without explicit selectors
+
+- GIVEN `TRELLO_DEFAULT_BOARD_ID` is NOT set
+- AND the authenticated member has access to exactly one board
+- WHEN the user invokes a board-scoped tool without `boardId` and without `boardName`
+- THEN the system SHALL auto-discover that single accessible board
+
 ### Requirement: trello_create_card Tool
 
 The system SHALL expose a `trello_create_card` MCP tool that creates a new card on a Trello board.
 
-The tool MUST accept `name`, `listName` (optional, defaults to "To Do"), `boardId` (optional, uses `TRELLO_DEFAULT_BOARD_ID`), `description` (optional), and `pos` (optional, defaults to "bottom").
+The tool MUST accept `name`, `listName` (optional, defaults to "To Do"), `boardId` (optional), `boardName` (optional), `description` (optional), and `pos` (optional, defaults to "bottom").
 
 The tool SHALL create the list implicitly if it does not exist.
 
@@ -55,9 +105,9 @@ The tool MUST return a JSON object containing `id`, `name`, `idList`, `shortUrl`
 
 The system SHALL expose a `trello_move_card` MCP tool that moves a card to a different list.
 
-The tool MUST accept `cardName`, `toList`, `boardId` (optional), and `cardId` (optional, for disambiguation).
+The tool MUST accept `cardName`, `toList`, `boardId` (optional), `boardName` (optional), and `cardId` (optional, for disambiguation).
 
-The tool SHALL use fuzzy matching on `cardName` when `cardId` is not provided.
+The tool SHALL use the same case-insensitive substring semantics as `CardQuery` when `cardId` is not provided.
 
 The tool MUST return a JSON object containing the updated card with new `idList`.
 
@@ -73,11 +123,11 @@ The tool MUST return a JSON object containing the updated card with new `idList`
 - GIVEN multiple cards have names containing "login" (e.g., "Fix login bug", "Login timeout")
 - WHEN the user invokes `trello_move_card` with `cardId: "abc123"`, `toList: "Done"`
 - THEN the system SHALL move the card with ID "abc123" directly
-- AND NOT perform fuzzy matching
+- AND NOT perform additional name matching
 
 #### Scenario: Move card ambiguous name
 
-- GIVEN multiple cards match the fuzzy search for "login"
+- GIVEN multiple cards match the substring search for "login"
 - WHEN the user invokes `trello_move_card` with `cardName: "login"`, `toList: "Done"`
 - THEN the system SHALL return error code `-32002` with message "Ambiguous card name"
 - AND include a `suggestions` array with matching card objects containing `id`, `name`, `idList`
@@ -102,11 +152,11 @@ The tool MUST return a JSON object containing the updated card with new `idList`
 
 The system SHALL expose a `trello_search_cards` MCP tool that searches for cards by name.
 
-The tool MUST accept `query`, `boardId` (optional), and `limit` (optional, defaults to 10, max 50).
+The tool MUST accept `query`, `boardId` (optional), `boardName` (optional), and `limit` (optional, defaults to 10, max 50).
 
-The tool SHALL use fuzzy matching on card names.
+The tool SHALL use case-insensitive substring matching on card names with AND logic between query terms.
 
-The tool MUST return an array of card objects containing `id`, `name`, `idList`, `listName`, `boardId`, `closed`, and `shortUrl`.
+The tool MUST return an object containing `boardId`, `cards`, and `truncated`, where `cards` is an array of card objects containing `id`, `name`, `idList`, `listName`, `boardId`, `closed`, and `shortUrl`.
 
 #### Scenario: Search cards with exact match
 
@@ -114,11 +164,11 @@ The tool MUST return an array of card objects containing `id`, `name`, `idList`,
 - WHEN the user invokes `trello_search_cards` with `query: "Fix login bug"`
 - THEN the system SHALL return an array containing the exact matching card
 
-#### Scenario: Search cards with fuzzy match
+#### Scenario: Search cards with substring AND match
 
 - GIVEN a card named "Authentication failure" exists
 - WHEN the user invokes `trello_search_cards` with `query: "auth fail"`
-- THEN the system SHALL return cards with names containing "auth" and "fail" (fuzzy match)
+- THEN the system SHALL return cards with names containing both "auth" and "fail" regardless of case
 
 #### Scenario: Search cards with no results
 
@@ -127,11 +177,19 @@ The tool MUST return an array of card objects containing `id`, `name`, `idList`,
 - THEN the system SHALL return an empty array
 - AND NOT raise an error
 
+#### Scenario: Search cards by explicit boardName
+
+- GIVEN the authenticated member has access to a board named `Product Delivery`
+- AND that board contains a card named `Fix login bug`
+- WHEN the user invokes `trello_search_cards` with `query: "Fix login bug", boardName: "product delivery"`
+- THEN the system SHALL resolve the board by normalized exact name match
+- AND return the matching card from that board
+
 #### Scenario: Search cards limit
 
 - GIVEN more than 20 cards match the query
 - WHEN the user invokes `trello_search_cards` with `query: "bug", limit: 20`
-- THEN the system SHALL return at most 20 cards
+- THEN the system SHALL return at most 20 cards inside `cards`
 - AND include a `truncated: true` flag if results were limited
 
 ---
@@ -140,7 +198,7 @@ The tool MUST return an array of card objects containing `id`, `name`, `idList`,
 
 The system SHALL expose a `trello_add_labels` MCP tool that adds labels to a card.
 
-The tool MUST accept `cardName` or `cardId`, `labels` (array of label objects), and `boardId` (optional).
+The tool MUST accept `cardName` or `cardId`, `labels` (array of label objects), `boardId` (optional), and `boardName` (optional).
 
 The tool SHALL add labels (NOT replace existing labels) - this is ADD mode only.
 
@@ -180,7 +238,7 @@ The tool MUST return the updated card with all labels.
 
 The system SHALL expose a `trello_add_comment` MCP tool that adds a comment to a card.
 
-The tool MUST accept `cardName` or `cardId`, `text` (comment content), and `boardId` (optional).
+The tool MUST accept `cardName` or `cardId`, `text` (comment content), `boardId` (optional), and `boardName` (optional).
 
 The tool SHALL return the created comment object with `id`, `text`, `creator`, and `date`.
 
@@ -190,6 +248,14 @@ The tool SHALL return the created comment object with `id`, `text`, `creator`, a
 - WHEN the user invokes `trello_add_comment` with `cardName: "Fix login bug"`, `text: "Assigned to John"`
 - THEN the system SHALL add the comment to the card
 - AND return the comment object with `id`, `text`, `creator`, and `date`
+
+#### Scenario: Add comment by boardName and cardName
+
+- GIVEN the authenticated member has access to a board named `Product Delivery`
+- AND a card named `Fix login bug` exists on that board
+- WHEN the user invokes `trello_add_comment` with `cardName: "Fix login bug"`, `boardName: " product   delivery ", text: "Assigned to John"`
+- THEN the system SHALL resolve the board by normalized exact name match
+- AND add the comment to the card on that board
 
 #### Scenario: Add comment with markdown
 
@@ -284,9 +350,9 @@ The system SHOULD retry up to 3 times with delays of 1s, 2s, and 4s respectively
 
 ---
 
-### Requirement: Fuzzy Card Matching
+### Requirement: Card Name Matching
 
-The system SHALL implement fuzzy matching for card name queries using case-insensitive substring matching.
+The system SHALL implement card name matching for queries using case-insensitive substring matching.
 
 The system SHOULD return cards where all query terms appear in the card name (AND logic).
 
@@ -313,6 +379,7 @@ const trelloCreateCardInput = z.object({
   name: z.string().min(1).max(512, "Card name must be under 512 characters"),
   listName: z.string().optional().default("To Do"),
   boardId: z.string().optional(),
+  boardName: z.string().optional(),
   description: z.string().max(16384, "Description must be under 16384 characters").optional(),
   pos: z.enum(["top", "bottom", "up", "down"]).optional().default("bottom"),
 });
@@ -337,6 +404,7 @@ const trelloMoveCardInput = z.object({
   cardId: z.string().optional(),
   toList: z.string().min(1),
   boardId: z.string().optional(),
+  boardName: z.string().optional(),
 }).refine(data => data.cardName || data.cardId, {
   message: "Either cardName or cardId must be provided",
 });
@@ -357,19 +425,24 @@ const trelloMoveCardOutput = z.object({
 const trelloSearchCardsInput = z.object({
   query: z.string().min(1),
   boardId: z.string().optional(),
+  boardName: z.string().optional(),
   limit: z.number().int().min(1).max(50).optional().default(10),
 });
 
-const trelloSearchCardsOutput = z.array(z.object({
-  id: z.string(),
-  name: z.string(),
-  idList: z.string(),
-  listName: z.string(),
+const trelloSearchCardsOutput = z.object({
   boardId: z.string(),
-  closed: z.boolean(),
-  shortUrl: z.string().url(),
-  due: z.string().nullable(),
-}));
+  truncated: z.boolean(),
+  cards: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    idList: z.string(),
+    listName: z.string(),
+    boardId: z.string(),
+    closed: z.boolean(),
+    shortUrl: z.string().url(),
+    due: z.string().nullable(),
+  })),
+});
 ```
 
 ### trello_add_labels
@@ -383,6 +456,7 @@ const trelloAddLabelsInput = z.object({
     color: z.enum(["blue", "green", "red", "orange", "purple", "pink", "sky", "lime", "black", "yellow", "null"]).optional(),
   })).min(1),
   boardId: z.string().optional(),
+  boardName: z.string().optional(),
 }).refine(data => data.cardName || data.cardId, {
   message: "Either cardName or cardId must be provided",
 });
@@ -408,6 +482,7 @@ const trelloAddCommentInput = z.object({
   cardId: z.string().optional(),
   text: z.string().min(1).max 16384,
   boardId: z.string().optional(),
+  boardName: z.string().optional(),
 }).refine(data => data.cardName || data.cardId, {
   message: "Either cardName or cardId must be provided",
 });
@@ -472,26 +547,30 @@ const cardsByLabelResource = z.record(z.string(), z.array(z.object({
 | `-32005` | BOARD_NOT_FOUND | Board not found or inaccessible | 404 |
 | `-32006` | RATE_LIMITED | Rate limited by Trello API. Retry after {delay}s | 429 |
 | `-32007` | TRELLO_API_ERROR | Trello API error: {message} | 502 |
+| `-32008` | BOARD_AMBIGUOUS | Ambiguous board name. Multiple accessible boards match. Provide `boardId`. | 409 |
 
 ## Edge Cases
 
 ### Card Name Ambiguity
-When fuzzy matching returns multiple cards, the system MUST return error `-32002` with a `suggestions` array. The user must then provide `cardId` to disambiguate.
+When card name matching returns multiple cards, the system MUST return error `-32002` with a `suggestions` array. The user must then provide `cardId` to disambiguate.
 
 ### Board Auto-Discovery
 If `TRELLO_DEFAULT_BOARD_ID` is not set and the user has exactly one board, the system SHALL use that board. If multiple boards exist, the system MUST return error `-32001`.
+
+### Board Name Resolution
+If `boardName` is provided, the system SHALL resolve it using normalized exact match against accessible boards. If multiple boards match, the system MUST return `-32008`. If no board matches, the system MUST return `-32005` and MUST NOT silently fall back to another board.
 
 ### Label Color
 If a label with the specified name does not exist, the system SHALL create it with the provided color. If no color is provided, default to "blue".
 
 ### Special Characters
-Card names with special regex characters (e.g., `*`, `?`, `+`) SHALL be escaped before fuzzy matching to prevent injection.
+Card names with special regex characters (e.g., `*`, `?`, `+`) SHALL be handled safely by the matching boundary to prevent accidental regex injection.
 
 ### Card Position
 The `pos` parameter supports "top", "bottom", "up" (above current card), "down" (below current card). Default is "bottom".
 
 ### Empty Search Results
-`trello_search_cards` with no matches SHALL return an empty array, not an error.
+`trello_search_cards` with no matches SHALL return `{ boardId, cards: [], truncated: false }`, not an error.
 
 ### Due Date Handling
 Cards without due dates SHALL have `due: null` in all responses. The `overdueDays` field SHALL be `null` for cards without due dates.

@@ -2,9 +2,9 @@
 
 ## Technical Approach
 
-Expose 5 MCP tools and 3 MCP resources that wrap Trello API operations via a clean adapter layer. Card queries use fuzzy matching (fuse.js) against card names to improve UX without requiring exact IDs. The architecture follows strict layer separation: MCP handlers delegate to application services, which use domain entities, with Trello API calls happening only in the infrastructure layer.
+Expose 5 MCP tools and 3 MCP resources that wrap Trello API operations via a clean adapter layer. Card queries reuse the domain semantics already implemented in `CardQuery`: case-insensitive substring matching with AND logic between terms, without `fuse.js` for now. The architecture follows strict layer separation: MCP handlers delegate to application services, which use domain entities, with Trello API calls happening only in the infrastructure layer.
 
-This is target-state design for Trello runtime work on top of the existing bootstrap. The current repository already has the `mcp-bootstrap-opencode` baseline (`stdio` transport plus `bootstrap.status`), but this design is still downstream because Trello tools/resources and Trello infrastructure are not implemented yet.
+This is target-state design for Trello runtime work on top of the existing bootstrap. The current repository already has the `mcp-bootstrap-opencode` baseline (`stdio` transport plus `bootstrap.status`), and the implemented vertical slices of this change are currently `trello_search_cards` plus the minimum `trello_add_comment` write flow.
 
 ## Architecture Decisions
 
@@ -14,11 +14,11 @@ This is target-state design for Trello runtime work on top of the existing boots
 **Alternatives considered**: Two-layer (handlers + services), tightly coupled
 **Rationale**: Separation allows testing each layer independently, isolates Trello API changes from business logic, and enables future adapter swaps (e.g., mock for tests, alternative backend)
 
-### Decision: Fuzzy Matching Library
+### Decision: Card Name Matching Strategy
 
-**Choice**: `fuse.js` over `fast-levenshtein`
-**Alternatives considered**: `fast-levenshtein` (raw distance), manual substring match
-**Rationale**: Fuse.js provides threshold-based scoring with sorted results out of the box. For card name lookup (short strings, typos expected), fuzzy scoring is more user-friendly than pure edit distance.
+**Choice**: Reuse `CardQuery` semantics (case-insensitive substring + AND between terms)
+**Alternatives considered**: `fuse.js`, `fast-levenshtein`
+**Rationale**: The repository already contains the domain invariant we need in `src/domain/value-objects/CardQuery.ts`, so introducing `fuse.js` now would create contradictory documentation, a new dependency, and ranking behavior the runtime does not yet need for the first read-only slice.
 
 ### Decision: Error Handling
 
@@ -31,6 +31,18 @@ This is target-state design for Trello runtime work on top of the existing boots
 **Choice**: Zod schemas in `src/config/` validating env vars at startup
 **Alternatives considered**: Runtime checks, JSON Schema, plain objects
 **Rationale**: Zod provides runtime validation with type inference, integrates with existing dep, and provides clear error messages on startup.
+
+### Decision: Board Resolution Precedence
+
+**Choice**: Resolve board-scoped tool calls in this strict order: explicit `boardId`, explicit `boardName` by normalized exact match, `TRELLO_DEFAULT_BOARD_ID`, then auto-discovery only when the authenticated member has exactly one accessible board
+**Alternatives considered**: `boardName` partial matching, silent fallback from failed `boardName` to default board, unconditional auto-discovery
+**Rationale**: `boardId` is the least ambiguous identifier, `boardName` is user-friendly but needs deterministic matching, and silent fallback would allow reads/writes against the wrong board. Restricting auto-discovery to the single-board case keeps the contract safe when configuration is incomplete.
+
+### Decision: Board Discovery Endpoint
+
+**Choice**: Use Trello member board listing via `GET /1/members/{id}/boards`
+**Alternatives considered**: Relying on `GET /1/members/me?boards=open` as the primary discovery contract
+**Rationale**: The external Trello REST documentation currently exposes `GET /members/{id}/boards` under the Members API group. Internal artifacts that still mention `GET /1/members/me?boards=open` conflict with that verified documentation and should not remain as source-of-truth for this change.
 
 ## Architecture Layers
 
@@ -79,7 +91,7 @@ src/
 │   ├── tools/
 │   │   ├── create-card.ts            # trello_create_card handler
 │   │   ├── move-card.ts              # trello_move_card handler
-│   │   ├── search-cards.ts           # trello_search_cards handler
+│   │   ├── search-cards.ts           # trello_search_cards handler (Batch 1 implemented)
 │   │   ├── add-labels.ts             # trello_add_labels handler
 │   │   └── add-comment.ts             # trello_add_comment handler
 │   ├── resources/
@@ -90,7 +102,7 @@ src/
 ├── application/
 │   ├── create-card.ts                # Use case
 │   ├── move-card.ts                  # Use case
-│   ├── search-cards.ts               # Use case
+│   ├── search-cards.ts               # Use case (Batch 1 implemented)
 │   ├── add-labels.ts                 # Use case
 │   ├── add-comment.ts                # Use case
 │   ├── board-summary.ts              # Use case for resource
@@ -111,7 +123,7 @@ src/
 │   └── errors.ts                    # Domain errors with error codes
 ├── infrastructure/
 │   └── trello/
-│       ├── adapter.ts                # TrelloApiAdapter (main client)
+│       ├── adapter.ts                # Minimum read-only adapter for search in Batch 1
 │       ├── board-api.ts              # Board-related API calls
 │       ├── card-api.ts               # Card CRUD API calls
 │       ├── list-api.ts               # List API calls
@@ -142,7 +154,7 @@ Both credentials come from environment variables, validated at startup via Zod.
 |---------------|------------------|--------|
 | create_card | `/1/boards/{boardId}/lists` (get lists) then `/1/cards` | GET, POST |
 | move_card | `/1/cards/{cardId}` | PUT |
-| search_cards | `/1/boards/{boardId}/cards` (search all) | GET |
+| search_cards | `/1/boards/{boardId}/lists` + `/1/boards/{boardId}/cards` | GET |
 | add_labels | `/1/cards/{cardId}/labels` | POST |
 | add_comment | `/1/cards/{cardId}/actions/comments` | POST |
 | board_summary | `/1/boards/{boardId}` + `/1/boards/{boardId}/lists` | GET |
@@ -154,70 +166,51 @@ Both credentials come from environment variables, validated at startup via Zod.
 ```typescript
 // src/application/ports.ts
 export interface TrelloGateway {
-  getBoard(boardId: BoardId): Promise<Result<Board, DomainError>>;
-  getBoardLists(boardId: BoardId): Promise<Result<List[], DomainError>>;
-  getBoardCards(boardId: BoardId): Promise<Result<Card[], DomainError>>;
-  createCard(card: NewCard): Promise<Result<Card, DomainError>>;
-  updateCard(cardId: CardId, updates: Partial<Card>): Promise<Result<Card, DomainError>>;
-  addLabelToCard(cardId: CardId, labelId: LabelId): Promise<Result<void, DomainError>>;
-  addComment(cardId: CardId, text: string): Promise<Result<Comment, DomainError>>;
-  searchCardsByName(boardId: BoardId, name: string): Promise<Result<Card[], DomainError>>;
+  resolveBoard(input: { boardId?: string; boardName?: string }): Promise<Result<string, DomainError>>;
+  listCards(boardId: string): Promise<Result<CardSummary[], DomainError>>;
 }
 ```
 
-### Auto-discovery Logic
+### Board Resolution Flow
 
-If `TRELLO_DEFAULT_BOARD_ID` is unset:
-1. Call `GET /1/members/me?boards=open` to list user's boards
-2. If only 1 board, use it as default
-3. If multiple or none, return `ConfigurationError` with clear message
+For board-scoped tools such as `trello_search_cards` and `trello_add_comment` when callers identify cards by name:
 
-## Fuzzy Matching Strategy
+1. If `boardId` is provided, use it directly and do not evaluate `boardName`
+2. If `boardId` is absent and `boardName` is provided, list accessible boards via `GET /1/members/{id}/boards`
+3. Normalize candidate names before matching (trim outer whitespace, collapse repeated internal whitespace, compare case-insensitively)
+4. If exactly one normalized exact match exists, use that board ID
+5. If multiple normalized exact matches exist, return a dedicated ambiguous-board error
+6. If no normalized exact match exists, return board-not-found for the provided `boardName`
+7. Only when neither `boardId` nor `boardName` is provided, fall back to `TRELLO_DEFAULT_BOARD_ID`
+8. Only when no explicit board selector is provided and no default board is configured, auto-discover the board if and only if the member has exactly one accessible board
+9. If the single-board condition is not met, return board-required instead of guessing
+
+## Card Name Matching Strategy
 
 ### Implementation
 
 ```typescript
-// src/infrastructure/trello/card-finder.ts
-import Fuse from 'fuse.js';
+// src/application/search-cards.ts
+const query = CardQueryVO.create({ query: 'fix auth', limit: 10 });
+const matchingCards = cards.filter((card) => query.matchesCardName(card.name));
 
-const fuseOptions = {
-  includeScore: true,
-  threshold: 0.4,      // 0 = exact match, 1 = match anything
-  minMatchCharLength: 2,
+return {
+  cards: matchingCards.slice(0, query.limit),
+  truncated: matchingCards.length > query.limit,
 };
-
-export class CardFinder {
-  constructor(private readonly gateway: TrelloGateway) {}
-
-  async findByName(boardId: BoardId, name: string): Promise<Card[]> {
-    const result = await this.gateway.searchCardsByName(boardId, name);
-    if (!result.ok) throw result.error;
-
-    const fuse = new Fuse(result.value, { ...fuseOptions, keys: ['name'] });
-    return fuse.search(name).map(r => r.item);
-  }
-
-  async disambiguate(boardId: BoardId, name: string): Promise<DisambiguationResult> {
-    const cards = await this.findByName(boardId, name);
-    
-    if (cards.length === 0) {
-      return { type: 'not_found', message: `No card matching "${name}" found` };
-    }
-    if (cards.length === 1) {
-      return { type: 'single', card: cards[0] };
-    }
-    return { 
-      type: 'multiple', 
-      cards, 
-      message: `Multiple cards match "${name}". Choose one: ${cards.map(c => c.name).join(', ')}` 
-    };
-  }
-}
 ```
 
-### Disambiguation Prompt
+### Current Slice Boundary
 
-When multiple matches found, return structured response so the LLM can:
+The implemented slices still do not add `fuse.js`, typo tolerance, board-name resolution, safe auto-discovery, create/move/add-label operations, or resources. They only:
+
+- read board cards and resolve list names for `trello_search_cards`
+- resolve a card by `cardId` or by `cardName` using existing `CardQuery` semantics
+- post a Trello comment and map the returned action into the domain `Comment`
+
+## Disambiguation Prompt
+
+When multiple matches found, future write tools can still return structured response so the LLM can:
 1. Present options to user
 2. Ask user to clarify which card
 
@@ -338,6 +331,6 @@ LLM → MCP Protocol → create-card handler (src/mcp/tools/create-card.ts)
 
 ## Open Questions
 
-- [ ] Should `trello_search_cards` support searching across all boards or just the default board?
+- [ ] Search remains board-scoped for this change; no cross-board search is planned in the current contract.
 - [ ] Rate limit handling: should we cache board lists for a short period to reduce API calls?
 - [ ] Do we need pagination for `board_by_label` resource when boards have many cards?
