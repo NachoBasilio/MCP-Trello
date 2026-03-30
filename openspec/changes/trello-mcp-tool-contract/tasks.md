@@ -47,10 +47,10 @@ This task plan depends on `mcp-bootstrap-opencode` for bootstrap/source-of-truth
 
 ## Layer 4: MCP
 
-- [ ] 4.1 Create `src/mcp/tools/create-card.ts` with trello_create_card handler
-- [ ] 4.2 Create `src/mcp/tools/move-card.ts` with trello_move_card handler
+- [x] 4.1 Create `src/mcp/tools/create-card.ts` with trello_create_card handler
+- [x] 4.2 Create `src/mcp/tools/move-card.ts` with trello_move_card handler
 - [x] 4.3 Create `src/mcp/tools/search-cards.ts` with trello_search_cards handler
-- [ ] 4.4 Create `src/mcp/tools/add-labels.ts` with trello_add_labels handler
+- [x] 4.4 Create `src/mcp/tools/add-labels.ts` with trello_add_labels handler
 - [x] 4.5 Create `src/mcp/tools/add-comment.ts` with trello_add_comment handler
 - [ ] 4.6 Create `src/mcp/resources/board-summary.ts` with trello://boards/{id}/summary handler
 - [ ] 4.7 Create `src/mcp/resources/board-overdue.ts` with trello://boards/{id}/overdue handler
