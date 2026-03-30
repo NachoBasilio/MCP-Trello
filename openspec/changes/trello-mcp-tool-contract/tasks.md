@@ -21,13 +21,13 @@ This task plan depends on `mcp-bootstrap-opencode` for bootstrap/source-of-truth
 
 - [x] 2.1 Reuse the existing `src/shared/index.ts` foundation and extend it only if Trello runtime needs additional shared helpers
 - [x] 2.2 Reuse the existing `src/config/index.ts` env validation and extend it only if Trello runtime requires extra configuration beyond the bootstrap baseline
-- [ ] 2.3 Create `src/infrastructure/trello/fixtures.ts` with test fixtures for Trello API payloads
-- [ ] 2.4 Create `src/infrastructure/trello/mappers.ts` with TrelloDto → Domain entity mappers
+- [x] 2.3 Create `src/infrastructure/trello/fixtures.ts` with test fixtures for Trello API payloads
+- [x] 2.4 Create `src/infrastructure/trello/mappers.ts` with TrelloDto → Domain entity mappers
 - [x] 2.5 Create `src/infrastructure/trello/board-api.ts` with board-related Trello API calls
-- [ ] 2.6 Create `src/infrastructure/trello/list-api.ts` with list-related Trello API calls
-- [ ] 2.7 Create `src/infrastructure/trello/card-api.ts` with card CRUD Trello API calls
-- [ ] 2.8 Create `src/infrastructure/trello/label-api.ts` with label Trello API calls
-- [ ] 2.9 Create `src/infrastructure/trello/comment-api.ts` with comment Trello API calls
+- [x] 2.6 Create `src/infrastructure/trello/list-api.ts` with list-related Trello API calls
+- [x] 2.7 Create `src/infrastructure/trello/card-api.ts` with card CRUD Trello API calls
+- [x] 2.8 Create `src/infrastructure/trello/label-api.ts` with label Trello API calls
+- [x] 2.9 Create `src/infrastructure/trello/comment-api.ts` with comment Trello API calls
 - [x] 2.10 Create `src/infrastructure/trello/adapter.ts` with the minimum read-only adapter needed for `trello_search_cards`
 - [x] 2.11 Create `src/types/tool-contract.ts` with the minimum Zod schemas needed for the implemented tool slice
 - [x] 2.12 Extend `src/infrastructure/trello/adapter.ts` with board listing + deterministic board resolution support using `GET /1/members/{id}/boards` and no silent fallback from failed `boardName`
@@ -35,15 +35,15 @@ This task plan depends on `mcp-bootstrap-opencode` for bootstrap/source-of-truth
 ## Layer 3: Application
 
 - [x] 3.1 Create `src/application/ports.ts` with the minimum search port required by the implemented slice
-- [ ] 3.2 Create `src/application/create-card.ts` with CreateCardUseCase (handles implicit list creation)
-- [ ] 3.3 Create `src/application/move-card.ts` with MoveCardUseCase (CardQuery matching + disambiguation)
+- [x] 3.2 Create `src/application/create-card.ts` with CreateCardUseCase (handles implicit list creation)
+- [x] 3.3 Create `src/application/move-card.ts` with MoveCardUseCase (CardQuery matching + disambiguation)
 - [x] 3.4 Create `src/application/search-cards.ts` with SearchCardsUseCase using `CardQuery` substring semantics and limit/truncation
-- [ ] 3.5 Create `src/application/add-labels.ts` with AddLabelsUseCase (ADD mode only, implicit label creation)
+- [x] 3.5 Create `src/application/add-labels.ts` with AddLabelsUseCase (ADD mode only, implicit label creation)
 - [x] 3.6 Create `src/application/add-comment.ts` with AddCommentUseCase
-- [ ] 3.7 Create `src/application/board-summary.ts` with BoardSummaryUseCase
-- [ ] 3.8 Create `src/application/board-overdue.ts` with BoardOverdueUseCase (calculate overdueDays)
-- [ ] 3.9 Create `src/application/board-by-label.ts` with BoardByLabelUseCase
-- [ ] 3.10 Replace direct `resolveBoardId` calls in `src/application/search-cards.ts` and `src/application/add-comment.ts` with shared board-resolution input (`boardId`, `boardName`) honoring precedence and explicit board ambiguity/not-found errors
+- [x] 3.7 Create `src/application/board-summary.ts` with BoardSummaryUseCase
+- [x] 3.8 Create `src/application/board-overdue.ts` with BoardOverdueUseCase (calculate overdueDays)
+- [x] 3.9 Create `src/application/board-by-label.ts` with BoardByLabelUseCase
+- [x] 3.10 Replace direct `resolveBoardId` calls in `src/application/search-cards.ts` and `src/application/add-comment.ts` with shared board-resolution input (`boardId`, `boardName`) honoring precedence and explicit board ambiguity/not-found errors
 
 ## Layer 4: MCP
 
