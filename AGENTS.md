@@ -12,14 +12,19 @@
 
 1. Solicitud explicita del usuario.
 2. Este `AGENTS.md`.
-3. `README.md`.
-4. `skills/*/SKILL.md`.
+3. `AGENTS.md` anidados dentro de subdirectorios cuando existan, solo para el scope de esa carpeta.
+4. `openspec/` para cambios SDD activos, dependencias y artifacts de fase.
+5. `README.md`.
+6. `skills/*/SKILL.md`.
 
 ## Reglas de trabajo
 
 - No implementar el servidor MCP completo durante el bootstrap de skills/agentes.
 - No hacer build; validar con lectura, consistencia y estado git.
 - No hacer commit ni push salvo instruccion explicita.
+- Todo JSDoc nuevo o modificado debe escribirse en espanol.
+- Cada vez que se empiece a trabajar de forma sostenida en una carpeta nueva, crear un `AGENTS.md` local con las reglas, boundaries y decisiones que solo aplican a ese scope.
+- Si existe un `AGENTS.md` local para la carpeta en la que se esta trabajando, leerlo antes de modificar archivos dentro de ese scope.
 - Antes de tocar arquitectura, leer primero `skills/mcp-server-architecture/SKILL.md`.
 - Antes de tocar integracion Trello, leer primero `skills/trello-api-integration/SKILL.md`.
 - Antes de proponer setup o tooling, leer primero `skills/node-typescript-setup/SKILL.md`.
@@ -38,6 +43,11 @@
 5. Cubrir contratos, validaciones y casos de error con tests.
 6. Ejecutar checklist de release antes de exponer cambios como listos.
 
+## Evidencia SDD activa
+
+- `openspec/changes/mcp-bootstrap-opencode/` fija la fuente de verdad del bootstrap actual y la diferencia entre foundations existentes y runtime MCP pendiente.
+- `openspec/changes/trello-mcp-tool-contract/` debe leerse como trabajo de contrato downstream, no como evidencia de que el servidor MCP ya este operativo.
+
 ## Skills locales disponibles
 
 | Skill | Proposito | Trigger principal | Ruta |
@@ -46,6 +56,7 @@
 | `node-typescript-setup` | Guiar setup inicial de Node.js + TypeScript sin sobreingenieria | `package.json`, `tsconfig`, scripts, tooling | `skills/node-typescript-setup/SKILL.md` |
 | `trello-api-integration` | Estandarizar acceso a Trello, auth y mapeos de dominio | Boards, cards, labels, webhooks, rate limits | `skills/trello-api-integration/SKILL.md` |
 | `testing-contracts` | Definir estrategia de pruebas para contratos MCP y adapters | Unit tests, contract tests, mocks, fixtures | `skills/testing-contracts/SKILL.md` |
+| `pull-request-prep` | Preparar pull requests coherentes con base `dev` y cuerpo verificable | Pull request, PR, `gh pr create`, entrega para revision | `skills/pull-request-prep/SKILL.md` |
 | `release-checklist` | Validar readiness sin vender humo | Release, docs, changelog, seguridad, smoke review | `skills/release-checklist/SKILL.md` |
 | `skill-creator` | Crear nuevas skills y agentes locales sin romper consistencia | Nuevas skills, AI workflow, AGENTS.md, plantillas | `skills/skill-creator/SKILL.md` |
 | `skill-sync` | Auditar y sincronizar metadata y referencias de skills del repo | Crear o editar skills, revisar AGENTS, validar consistencia | `skills/skill-sync/SKILL.md` |
@@ -56,6 +67,7 @@
 - Cargar `node-typescript-setup` cuando el pedido mencione bootstrap, setup, TypeScript, scripts, lint, estructura base o tooling.
 - Cargar `trello-api-integration` cuando el pedido mencione Trello API, auth, tokens, boards, lists, cards, webhooks o mapeo de payloads.
 - Cargar `testing-contracts` cuando el pedido mencione tests, contratos, validacion, mocks, fixtures o regression safety.
+- Cargar `pull-request-prep` cuando el pedido mencione pull request, PR, `gh pr create`, base branch o preparacion de entrega para revision.
 - Cargar `release-checklist` cuando el pedido mencione release, checklist, QA manual, readiness o entrega.
 - Cargar `skill-creator` cuando el pedido mencione crear skills, agentes, instrucciones AI, workflow reusable o actualizar `AGENTS.md`.
 - Cargar `skill-sync` despues de crear o tocar skills, o cuando el pedido mencione sincronizar metadata, validar AGENTS o revisar coherencia del catalogo de skills.
@@ -67,3 +79,4 @@
 - Toda nueva skill debe tener frontmatter completo, comandos reales o marcados como pendientes, y registrarse en esta tabla.
 - Las skills de meta-workflow (como `skill-creator`) son obligatorias cuando el proyecto define sus propias convenciones de agentes.
 - Toda modificacion en `skills/` debe revisar consistencia transversal con `skill-sync` antes de darse por lista.
+- Preferir mover reglas locales a `AGENTS.md` anidados antes que inflar el `AGENTS.md` raiz con detalles de una sola carpeta.
