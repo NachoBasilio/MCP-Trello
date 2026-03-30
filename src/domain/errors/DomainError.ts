@@ -16,6 +16,7 @@ export enum ErrorCode {
   BoardNotFound = 'BOARD_NOT_FOUND',
   RateLimited = 'RATE_LIMITED',
   TrelloApiError = 'TRELLO_API_ERROR',
+  BoardAmbiguous = 'BOARD_AMBIGUOUS',
 }
 
 /**
@@ -161,4 +162,18 @@ export const createRateLimitedError = (retryAfter?: number): DomainError => {
  */
 export const createTrelloApiError = (message: string, context?: DomainErrorContext): DomainError => {
   return new DomainError(ErrorCode.TrelloApiError, `Trello API error: ${message}`, context);
+};
+
+/**
+ * Crea un error de ambiguedad de board cuando varios boards accesibles coinciden con el nombre normalizado.
+ */
+export const createBoardAmbiguousError = (
+  matches: { id: string; name: string }[],
+  searchTerm: string
+): DomainError => {
+  return new DomainError(
+    ErrorCode.BoardAmbiguous,
+    'Ambiguous board name',
+    { matches, searchTerm }
+  );
 };
