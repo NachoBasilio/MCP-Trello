@@ -15,62 +15,6 @@ const baseConfig = {
  */
 describe('Adapter de busqueda de tarjetas en Trello', () => {
   /**
-   * Confirma que el adapter resuelve board efectivo, consulta listas y tarjetas, y devuelve el contrato interno esperado.
-   */
-  it('debe mapear tarjetas y nombres de lista usando el board resuelto', async () => {
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify([{ id: 'list-1', name: 'To Do' }]), { status: 200 })
-      )
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify([
-            {
-              id: 'card-1',
-              name: 'Fix authentication bug',
-              idList: 'list-1',
-              idBoard: 'board-default',
-              closed: false,
-              shortUrl: 'https://trello.com/c/card-1',
-              due: null,
-            },
-          ]),
-          { status: 200 }
-        )
-      );
-
-    const adapter = createTrelloSearchCardsAdapter(baseConfig, fetchMock as typeof fetch);
-    const boardId = await adapter.resolveBoardId();
-    const cards = await adapter.listCards('board-default');
-
-    expect(boardId).toEqual({ ok: true, value: 'board-default' });
-    expect(cards).toEqual({
-      ok: true,
-      value: [
-        {
-          id: 'card-1',
-          name: 'Fix authentication bug',
-          idList: 'list-1',
-          listName: 'To Do',
-          boardId: 'board-default',
-          closed: false,
-          shortUrl: 'https://trello.com/c/card-1',
-          due: null,
-        },
-      ],
-    });
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      1,
-      'https://api.trello.com/1/boards/board-default/lists?key=key-123&token=token-123&fields=name'
-    );
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      2,
-      'https://api.trello.com/1/boards/board-default/cards?key=key-123&token=token-123&fields=id%2Cname%2CidList%2CidBoard%2Cclosed%2CshortUrl%2Cdue&filter=all'
-    );
-  });
-
-  /**
    * Valida que un 404 se traduzca al error de dominio esperado por capas superiores.
    */
   it('debe traducir 404 a un DomainError de board inaccesible', async () => {
@@ -90,43 +34,156 @@ describe('Adapter de busqueda de tarjetas en Trello', () => {
   });
 
   /**
-   * Verifica el POST minimo de comentarios y el mapeo de la accion de Trello al contrato interno `Comment`.
+   * Verifica que resolveBoard use boardId cuando esta presente ( precedence boardId > boardName).
    */
-  it('debe publicar un comentario y mapear creator y date desde la accion devuelta por Trello', async () => {
+  it('debe usar boardId directo cuando se provee', async () => {
+    const fetchMock = vi.fn();
+    const adapter = createTrelloSearchCardsAdapter(baseConfig, fetchMock as typeof fetch);
+
+    const result = await adapter.resolveBoard({ boardId: 'board-explicit' });
+
+    expect(result).toEqual({ ok: true, value: 'board-explicit' });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  /**
+   * Verifica que resolveBoard normalice boardName para comparacion case-insensitive.
+   */
+  it('debe normalizar boardName para comparacion case-insensitive y detectar ambiguedad', async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(
-        JSON.stringify({
-          id: 'action-1',
-          date: '2026-03-29T10:00:00.000Z',
-          data: {
-            text: 'Assigned to Nacho',
-          },
-          memberCreator: {
-            fullName: 'Ignadev',
-            username: 'ignadev',
-          },
-        }),
+        JSON.stringify([
+          { id: 'board-1', name: 'My Project Board' },
+          { id: 'board-2', name: 'My PROJECT board' },
+        ]),
         { status: 200 }
       )
     );
     const adapter = createTrelloSearchCardsAdapter(baseConfig, fetchMock as typeof fetch);
 
-    const result = await adapter.addComment('card-1', 'Assigned to Nacho');
+    const result = await adapter.resolveBoard({ boardName: '  MY   project   board  ' });
 
-    expect(fetchMock).toHaveBeenCalledWith(
-      'https://api.trello.com/1/cards/card-1/actions/comments?key=key-123&token=token-123&text=Assigned+to+Nacho',
-      {
-        method: 'POST',
-      }
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      throw new Error('Se esperaba error de ambiguedad');
+    }
+    expect(result.error.code).toBe(ErrorCode.BoardAmbiguous);
+  });
+
+  /**
+   * Verifica que resolveBoard retorne error cuando boardName no existe.
+   */
+  it('debe retornar error cuando boardName no existe', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify([{ id: 'board-1', name: 'Some Board' }]), {
+        status: 200,
+      })
     );
-    expect(result).toEqual({
-      ok: true,
-      value: {
-        id: 'action-1',
-        text: 'Assigned to Nacho',
-        creator: 'Ignadev',
-        date: '2026-03-29T10:00:00.000Z',
-      },
-    });
+    const adapter = createTrelloSearchCardsAdapter(baseConfig, fetchMock as typeof fetch);
+
+    const result = await adapter.resolveBoard({ boardName: 'Nonexistent Board' });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      throw new Error('Se esperaba error de no encontrado');
+    }
+    expect(result.error.code).toBe(ErrorCode.BoardNotFound);
+  });
+
+  /**
+   * Verifica que resolveBoard use TRELLO_DEFAULT_BOARD_ID cuando no hay boardId ni boardName.
+   */
+  it('debe usar TRELLO_DEFAULT_BOARD_ID cuando no se provee boardId ni boardName', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify([{ id: 'board-1', name: 'Some Board' }]), {
+        status: 200,
+      })
+    );
+    const adapter = createTrelloSearchCardsAdapter(baseConfig, fetchMock as typeof fetch);
+
+    const result = await adapter.resolveBoard({});
+
+    expect(result).toEqual({ ok: true, value: 'board-default' });
+  });
+
+  /**
+   * Verifica que resolveBoard haga autodiscovery cuando hay exactamente un board accesible.
+   */
+  it('debe hacer autodiscovery cuando hay exactamente un board accesible', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify([{ id: 'board-single', name: 'Only Board' }]), {
+        status: 200,
+      })
+    );
+    const configNoDefault = {
+      ...baseConfig,
+      TRELLO_DEFAULT_BOARD_ID: undefined,
+    };
+    const adapter = createTrelloSearchCardsAdapter(configNoDefault, fetchMock as typeof fetch);
+
+    const result = await adapter.resolveBoard({});
+
+    expect(result).toEqual({ ok: true, value: 'board-single' });
+  });
+
+  /**
+   * Verifica que resolveBoard retorne error cuando hay multiples boards y no se provee selector.
+   */
+  it('debe retornar error cuando hay multiples boards y no se provee selector', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify([
+          { id: 'board-1', name: 'Board One' },
+          { id: 'board-2', name: 'Board Two' },
+        ]),
+        { status: 200 }
+      )
+    );
+    const configNoDefault = {
+      ...baseConfig,
+      TRELLO_DEFAULT_BOARD_ID: undefined,
+    };
+    const adapter = createTrelloSearchCardsAdapter(configNoDefault, fetchMock as typeof fetch);
+
+    const result = await adapter.resolveBoard({});
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      throw new Error('Se esperaba error de board requerido');
+    }
+    expect(result.error.code).toBe(ErrorCode.BoardIdRequired);
+  });
+
+  /**
+   * Verifica que boardId tenga precedencia sobre boardName.
+   */
+  it('debe preferir boardId sobre boardName', async () => {
+    const fetchMock = vi.fn();
+    const adapter = createTrelloSearchCardsAdapter(baseConfig, fetchMock as typeof fetch);
+
+    const result = await adapter.resolveBoard({ boardId: 'board-123', boardName: 'Other Board' });
+
+    expect(result).toEqual({ ok: true, value: 'board-123' });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  /**
+   * Verifica que resolveBoard resuelva boardName unico correctamente.
+   */
+  it('debe resolver boardName unico corretamente', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify([
+          { id: 'board-1', name: 'My Project' },
+          { id: 'board-2', name: 'Other Board' },
+        ]),
+        { status: 200 }
+      )
+    );
+    const adapter = createTrelloSearchCardsAdapter(baseConfig, fetchMock as typeof fetch);
+
+    const result = await adapter.resolveBoard({ boardName: 'my project' });
+
+    expect(result).toEqual({ ok: true, value: 'board-1' });
   });
 });

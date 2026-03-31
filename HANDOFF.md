@@ -23,6 +23,8 @@
    - `tests/unit/mcp/registry.test.ts` - Ahora verifica 7 tools + 3 resources
    - `tests/unit/mcp/handlers.test.ts` - Ahora verifica los 10 handlers (7 tools + 3 resources)
    - `tests/integration/bootstrap/index.test.ts` - Se agregó mock de ResourceTemplate y registerResource
+5. **Board resolution + retries**: Se consolidó la precedencia `boardId > boardName normalizado > default > autodiscovery` y se agregó un helper de reintentos (1s/2s/4s) reutilizado por todas las APIs.
+6. **Docs alineadas**: README/Handoff/spec reflejan que el runtime Trello ya existe y que lo pendiente es la capa de tests.
 
 ## Donde quedamos parados
 
@@ -38,19 +40,15 @@
 
 ### Pendiente importante
 
-- La estrategia completa de resolución por `boardName` todavía no está cerrada en runtime.
-- El adapter actual resuelve `boardId` explícito o `TRELLO_DEFAULT_BOARD_ID`, pero NO implementa aún el flujo completo documentado en spec para:
-  - `boardName` normalizado
-  - autodiscovery con `GET /1/members/{id}/boards`
-  - error determinístico por board ambiguo
-- Quedan tests pendientes de Layer 5 (5.1-5.7, 5.10-5.16)
+- El Layer 5 de pruebas sigue abierto: faltan unit tests adicionales, contract tests (create-card, move-card) e integración completa para cada tool/resource.
+- Aún quedan escenarios por cubrir en tests automatizados para rate limit telemetry y búsqueda (por ejemplo, slice boundaries del search tool).
 
 ## Como retomar rápido en la otra PC
 
 1. Abrir `HANDOFF.md`.
 2. Revisar `openspec/changes/trello-mcp-tool-contract/tasks.md` para ver qué items quedaron marcados y cuáles siguen pendientes.
-3. Seguir desde el gap de board resolution, porque es el hueco más importante entre docs y runtime.
-4. Después, implementar los tests pendientes de Layer 5.
+3. Continuar con Layer 5: unit + contract + integration según `openspec/changes/trello-mcp-tool-contract/tasks.md`.
+4. Una vez que Layer 5 esté cubierto, correr checklist de release y preparar PR final.
 
 ## Archivos más relevantes del lote
 
@@ -69,6 +67,6 @@
 
 ## Nota operativa
 
-El servidor MCP ahora expone 7 tools y 3 resources. Todos los tests pasan. El siguiente paso es implementar la resolución completa de board por nombre y luego los tests pendientes.
+El servidor MCP expone 7 tools y 3 resources, con board resolution completa y backoff ante 429. Todos los tests actuales (105) pasan. El siguiente paso es cubrir Layer 5 según el plan SDD antes de preparar release.
 
 Este archivo existe para no perder contexto si se corta la sesión o se apaga la máquina.

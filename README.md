@@ -77,23 +77,23 @@ Esta recomendación se basa en el README oficial del repositorio, que indica que
 
 ## Estado del proyecto
 
-Actualmente este repositorio ya tiene un bootstrap MCP runnable sobre `stdio`, pero todavia no implementa runtime funcional de Trello.
+El runtime MCP ya expone 7 tools y 3 resources conectados al cliente real de Trello. El adapter aplica la precedencia de board (`boardId` > `boardName` normalizado > `TRELLO_DEFAULT_BOARD_ID` > autodiscovery de un solo board) y ahora incorpora backoff exponencial (1s, 2s, 4s) ante respuestas 429 o fallos de red antes de propagar un error `Rate limited`.
 
 Completado hasta ahora:
 
 - bootstrap runnable del servidor MCP sobre `stdio`
-- tool diagnostica `bootstrap.status`
-- tests unitarios e integracion del bootstrap MCP
-- documentación base del workflow
-- skills locales y guía de agentes
-- convenciones iniciales del proyecto
-- foundations de dominio, configuración y utilidades compartidas
+- tool diagnóstica `bootstrap.status`
+- integración completa con Trello (boards, lists, cards, labels, comments)
+- 7 tools (`trello_search_cards`, `trello_add_comment`, `trello_list_boards`, `trello_create_card`, `trello_move_card`, `trello_add_labels`, tool diagnóstica) y 3 resources (`board-summary`, `board-overdue`, `board-by-label`)
+- documentación base del workflow + skills locales
+- board resolution determinística y retries centralizados
+- tests unitarios de dominio, aplicación e infraestructura existentes (105 casos) cubriendo el wiring actual
 
 Pendiente:
 
-- integración con cliente de Trello
-- implementación de tools y resources MCP de Trello
-- cobertura automatizada del runtime real de Trello
+- reforzar Layer 5 del plan SDD (tests unitarios adicionales de dominio/shared, contract tests create/move, integración completa por tool/resource)
+- cobertura explícita para escenarios edge (rate-limit telemetry, slicing del search boundary)
+- checklist de release final una vez que Layer 5 quede cubierto
 
 ## Estado verificado del bootstrap MCP
 

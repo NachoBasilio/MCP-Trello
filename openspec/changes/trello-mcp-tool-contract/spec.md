@@ -1,5 +1,11 @@
 # Delta for Trello MCP Tool Contract
 
+## Estado de implementación (marzo 2026)
+
+- ✅ Precedencia de resolución de board implementada (`boardId` > `boardName` normalizado > `TRELLO_DEFAULT_BOARD_ID` > autodiscovery de board único). Los errores `BoardNotFound`, `BoardAmbiguous` y `BoardIdRequired` se propagan desde el adapter y cuentan con pruebas unitarias.
+- ✅ Backoff exponencial compartido para todas las llamadas HTTP (1s, 2s, 4s) frente a HTTP 429 o errores de red, devolviendo `Rate limited` si se agotan los intentos.
+- ⚠️ Pendiente: capa de pruebas Layer 5 (unit tests adicionales, contract/integration para create/move/resources y escenarios edge descritos en Tasks 5.x).
+
 ## ADDED Requirements
 
 ### Requirement: Board Resolution for Board-Scoped Tools
