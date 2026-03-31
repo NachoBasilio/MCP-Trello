@@ -52,9 +52,9 @@ This task plan depends on `mcp-bootstrap-opencode` for bootstrap/source-of-truth
 - [x] 4.3 Create `src/mcp/tools/search-cards.ts` with trello_search_cards handler
 - [x] 4.4 Create `src/mcp/tools/add-labels.ts` with trello_add_labels handler
 - [x] 4.5 Create `src/mcp/tools/add-comment.ts` with trello_add_comment handler
-- [ ] 4.6 Create `src/mcp/resources/board-summary.ts` with trello://boards/{id}/summary handler
-- [ ] 4.7 Create `src/mcp/resources/board-overdue.ts` with trello://boards/{id}/overdue handler
-- [ ] 4.8 Create `src/mcp/resources/board-by-label.ts` with trello://boards/{id}/by-label handler
+- [x] 4.6 Create `src/mcp/resources/board-summary.ts` with trello://boards/{id}/summary handler
+- [x] 4.7 Create `src/mcp/resources/board-overdue.ts` with trello://boards/{id}/overdue handler
+- [x] 4.8 Create `src/mcp/resources/board-by-label.ts` with trello://boards/{id}/by-label handler
 - [x] 4.9 Extend `src/mcp/registry.ts` with the read-only search tool registration on top of the bootstrap registry introduced by `mcp-bootstrap-opencode`
 - [x] 4.10 Extend `src/mcp/handlers.ts` with the search handler wired to application on top of the bootstrap handler aggregate introduced by `mcp-bootstrap-opencode`
 - [x] 4.11 Extend `src/index.ts` composition wiring with the minimum Trello search dependencies while preserving the bootstrap stdio startup introduced by `mcp-bootstrap-opencode`
