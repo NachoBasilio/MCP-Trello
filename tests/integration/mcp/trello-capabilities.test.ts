@@ -4,11 +4,13 @@ import type { Config } from '../../../src/config/index.js';
 import { ErrorCode } from '../../../src/domain/index.js';
 import { createCreateCardUseCase } from '../../../src/application/create-card.js';
 import { createMoveCardUseCase } from '../../../src/application/move-card.js';
+import { createDeleteCardUseCase } from '../../../src/application/delete-card.js';
 import { createBoardSummaryUseCase } from '../../../src/application/board-summary.js';
 import { createSearchCardsUseCase } from '../../../src/application/search-cards.js';
 import { createTrelloSearchCardsAdapter } from '../../../src/infrastructure/trello/adapter.js';
 import { createCreateCardTool } from '../../../src/mcp/tools/create-card.js';
 import { createMoveCardTool } from '../../../src/mcp/tools/move-card.js';
+import { createDeleteCardTool } from '../../../src/mcp/tools/delete-card.js';
 import { createSearchCardsTool } from '../../../src/mcp/tools/search-cards.js';
 import { createBoardSummaryResource } from '../../../src/mcp/resources/board-summary.js';
 
@@ -250,5 +252,27 @@ describe('Integracion de capacidades MCP Trello', () => {
       ],
     });
     expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  /**
+   * Cubre flujo de eliminar tarjeta y confirma que el adapter efectua el DELETE real.
+   */
+  it('debe eliminar una tarjeta por id desde el tool trello_delete_card', async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(new Response(null, { status: 200 }));
+
+    const adapter = createTrelloSearchCardsAdapter(baseConfig, fetchMock as typeof fetch);
+    const useCase = createDeleteCardUseCase(adapter);
+    const tool = createDeleteCardTool(useCase);
+
+    const response = await tool.execute({
+      cardId: 'card-123',
+    });
+
+    expect(response.structuredContent).toEqual({
+      id: 'card-123',
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0]?.[0]).toContain('/cards/card-123');
+    expect(fetchMock.mock.calls[0]?.[1]?.method).toBe('DELETE');
   });
 });

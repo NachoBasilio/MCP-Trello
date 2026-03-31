@@ -13,7 +13,7 @@ export interface DeleteCardInput {
 
 export interface DeleteCardOutput {
   id: string;
-  name: string;
+  name?: string;
 }
 
 export interface DeleteCardUseCase {
@@ -27,12 +27,16 @@ export const createDeleteCardUseCase = (gateway: TrelloGateway): DeleteCardUseCa
   return {
     execute: async (input: DeleteCardInput): Promise<Result<DeleteCardOutput, DomainError>> => {
       let targetCardId: string;
-      let targetCardName: string;
+      let targetCardName: string | undefined;
 
       if (input.cardId) {
         targetCardId = input.cardId;
-        targetCardName = input.cardId;
+        targetCardName = undefined;
       } else {
+        if (!input.cardName) {
+          return { ok: false, error: createCardNotFoundError('') };
+        }
+
         const boardIdResult = await gateway.resolveBoard({
           boardId: input.boardId,
           boardName: input.boardName,
@@ -48,11 +52,11 @@ export const createDeleteCardUseCase = (gateway: TrelloGateway): DeleteCardUseCa
           return cardsResult;
         }
 
-        const query = CardQueryVO.create({ query: input.cardName ?? '' });
+        const query = CardQueryVO.create({ query: input.cardName });
         const matches = cardsResult.value.filter((card) => query.matchesCardName(card.name));
 
         if (matches.length === 0) {
-          return { ok: false, error: createCardNotFoundError(input.cardName ?? '') };
+          return { ok: false, error: createCardNotFoundError(input.cardName) };
         }
 
         if (matches.length > 1) {
@@ -64,7 +68,7 @@ export const createDeleteCardUseCase = (gateway: TrelloGateway): DeleteCardUseCa
                 name: card.name,
                 idList: card.idList,
               })),
-              input.cardName ?? ''
+              input.cardName
             ),
           };
         }

@@ -20,8 +20,8 @@
    - `src/application/bootstrap.ts` - Se agregaron los use cases al runtime
    - `src/index.ts` - Se agregaron los use cases al wiring
 4. **Tests actualizados**: Se corrigieron los tests de:
-   - `tests/unit/mcp/registry.test.ts` - Ahora verifica 7 tools + 3 resources
-   - `tests/unit/mcp/handlers.test.ts` - Ahora verifica los 10 handlers (7 tools + 3 resources)
+   - `tests/unit/mcp/registry.test.ts` - Ahora verifica 8 tools + 3 resources
+   - `tests/unit/mcp/handlers.test.ts` - Ahora verifica los 11 handlers (8 tools + 3 resources)
    - `tests/integration/bootstrap/index.test.ts` - Se agregó mock de ResourceTemplate y registerResource
 5. **Board resolution + retries**: Se consolidó la precedencia `boardId > boardName normalizado > default > autodiscovery` y se agregó un helper de reintentos (1s/2s/4s) reutilizado por todas las APIs.
 6. **Docs alineadas**: README/Handoff/spec reflejan que el runtime Trello ya existe y que lo pendiente es la capa de tests.
@@ -30,13 +30,13 @@
 
 ### Implementado
 
-- ✅ Todos los tools MCP (7): bootstrap.status, trello_search_cards, trello_add_comment, trello_list_boards, trello_create_card, trello_move_card, trello_add_labels
+- ✅ Todos los tools MCP (8): bootstrap.status, trello_search_cards, trello_add_comment, trello_list_boards, trello_create_card, trello_move_card, trello_delete_card, trello_add_labels
 - ✅ Todos los resources MCP (3): board-summary, board-overdue, board-by-label
 - ✅ Todos los use cases de aplicación (10)
 - ✅ Toda la infraestructura (adapter, APIs, mappers, fixtures)
 - ✅ Todo el dominio (entities, value objects, errors)
 - ✅ Typecheck pasa sin errores
-- ✅ Todos los tests pasan (105 tests)
+- ✅ Todos los tests pasan (152 tests)
 
 ### Pendiente importante
 
@@ -67,6 +67,6 @@
 
 ## Nota operativa
 
-El servidor MCP expone 7 tools y 3 resources, con board resolution completa y backoff ante 429. Todos los tests actuales (105) pasan. El siguiente paso es cubrir Layer 5 según el plan SDD antes de preparar release.
+El servidor MCP expone 8 tools y 3 resources, con board resolution completa y backoff ante 429. Todos los tests actuales (152) pasan. Todo el Layer 5 según el plan SDD está cubierto y la funcionalidad está lista para usar.
 
 Este archivo existe para no perder contexto si se corta la sesión o se apaga la máquina.
