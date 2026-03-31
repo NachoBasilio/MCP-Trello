@@ -21,6 +21,7 @@ const bootstrapStatusFixture: BootstrapDiagnosticSnapshot = {
     'trello_list_boards',
     'trello_create_card',
     'trello_move_card',
+    'trello_delete_card',
     'trello_add_labels',
   ],
   trelloRuntimeAvailable: true,
@@ -42,6 +43,7 @@ const baseDependencies: ApplicationDependencies = {
   listBoards: mockUseCase(ok([])),
   createCard: mockUseCase(),
   moveCard: mockUseCase(),
+  deleteCard: mockUseCase(),
   addLabels: mockUseCase(ok([])),
   boardSummary: mockUseCase(ok({ boardId: 'board-1', listCount: 3, cardCount: 10, lists: [] })),
   boardOverdue: mockUseCase(ok({ boardId: 'board-1', overdueCards: [], overdueCount: 0 })),
@@ -66,6 +68,7 @@ describe('Handlers MCP del servidor', () => {
       'listBoardsTool',
       'createCardTool',
       'moveCardTool',
+      'deleteCardTool',
       'addLabelsTool',
       'boardSummaryResource',
       'boardOverdueResource',
@@ -77,6 +80,7 @@ describe('Handlers MCP del servidor', () => {
     expect(handlers.listBoardsTool.name).toBe('trello_list_boards');
     expect(handlers.createCardTool.name).toBe('trello_create_card');
     expect(handlers.moveCardTool.name).toBe('trello_move_card');
+    expect(handlers.deleteCardTool.name).toBe('trello_delete_card');
     expect(handlers.addLabelsTool.name).toBe('trello_add_labels');
     expect(handlers.boardSummaryResource.name).toBe('board-summary');
     expect(handlers.boardOverdueResource.name).toBe('board-overdue');

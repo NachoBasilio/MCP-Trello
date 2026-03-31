@@ -20,7 +20,7 @@ import { err, ok, type Result } from '../../shared/index.js';
 
 import type { TrelloGateway } from '../../application/ports.js';
 import { fetchMemberBoards } from './board-api.js';
-import { fetchBoardCards, createTrelloCard, updateTrelloCard } from './card-api.js';
+import { fetchBoardCards, createTrelloCard, updateTrelloCard, deleteTrelloCard } from './card-api.js';
 import { fetchBoardLists, createBoardList } from './list-api.js';
 import { fetchBoardLabels, addLabelToCard, createBoardLabel } from './label-api.js';
 import { postCardComment, fetchCardComments } from './comment-api.js';
@@ -190,6 +190,10 @@ export const createTrelloSearchCardsAdapter = (
 
     listCardComments: async (cardId: string): Promise<Result<Comment[], DomainError>> => {
       return fetchCardComments(config, cardId, fetchWithRetry);
+    },
+
+    deleteCard: async (cardId: string): Promise<Result<void, DomainError>> => {
+      return deleteTrelloCard(config, cardId, fetchWithRetry);
     },
   };
 };

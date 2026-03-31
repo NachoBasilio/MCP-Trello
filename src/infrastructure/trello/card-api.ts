@@ -150,6 +150,30 @@ export const updateTrelloCard = async (
 };
 
 /**
+ * Elimina una tarjeta de Trello via `DELETE /1/cards/{id}`.
+ *
+ * @param config - Configuracion tipada con credenciales Trello.
+ * @param cardId - Identificador de la tarjeta a eliminar.
+ * @param fetchImpl - Implementacion de fetch inyectable para pruebas.
+ * @returns Resultado vacio en caso de exito.
+ */
+export const deleteTrelloCard = async (
+  config: Config,
+  cardId: string,
+  fetchImpl: typeof fetch = fetch
+): Promise<Result<void, DomainError>> => {
+  const url = buildTrelloUrl(config, `/cards/${cardId}`);
+
+  const response = await fetchImpl(url, { method: 'DELETE' });
+
+  if (!response.ok) {
+    return err(await mapTrelloHttpError(response));
+  }
+
+  return ok(undefined);
+};
+
+/**
  * Obtiene una tarjeta individual via `GET /1/cards/{id}`.
  */
 export const fetchTrelloCard = async (

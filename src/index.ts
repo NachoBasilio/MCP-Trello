@@ -2,6 +2,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 
 import { createAddCommentUseCase } from './application/add-comment.js';
+import { createDeleteCardUseCase } from './application/delete-card.js';
 import { createAddLabelsUseCase } from './application/add-labels.js';
 import { createBoardByLabelUseCase } from './application/board-by-label.js';
 import { createBoardOverdueUseCase } from './application/board-overdue.js';
@@ -43,6 +44,7 @@ const main = async (): Promise<void> => {
   const listBoards = createListBoardsUseCase(trelloGateway);
   const createCard = createCreateCardUseCase(trelloGateway);
   const moveCard = createMoveCardUseCase(trelloGateway);
+  const deleteCard = createDeleteCardUseCase(trelloGateway);
   const addLabels = createAddLabelsUseCase(trelloGateway);
   const boardSummary = createBoardSummaryUseCase(trelloGateway);
   const boardOverdue = createBoardOverdueUseCase(trelloGateway);
@@ -53,6 +55,7 @@ const main = async (): Promise<void> => {
     listBoards,
     createCard,
     moveCard,
+    deleteCard,
     addLabels,
     boardSummary,
     boardOverdue,
