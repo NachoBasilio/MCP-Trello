@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { createAddCommentUseCase } from '../../../src/application/add-comment.js';
-import { ErrorCode, type CardSummary } from '../../../src/domain/index.js';
-import { ok } from '../../../src/shared/index.js';
+import { ErrorCode, createBoardAmbiguousError, type CardSummary } from '../../../src/domain/index.js';
+import { err, ok } from '../../../src/shared/index.js';
 
 /**
  * Protege la slice minima de comentario y su resolucion de tarjeta sin tocar Trello real.
@@ -118,5 +118,42 @@ describe('Caso de uso AddComment', () => {
 
     expect(result.error.code).toBe(ErrorCode.CardAmbiguous);
     expect(addComment).not.toHaveBeenCalled();
+  });
+
+  /**
+   * Verifica que propaga ambiguedad de board cuando resolveBoard no puede desambiguar por nombre.
+   */
+  it('debe propagar error de board ambiguo cuando resolveBoard falla por multiples boards', async () => {
+    const ambiguousBoardError = createBoardAmbiguousError(
+      [
+        { id: 'board-1', name: 'Delivery Board' },
+        { id: 'board-2', name: 'delivery   board' },
+      ],
+      'Delivery Board'
+    );
+
+    const useCase = createAddCommentUseCase({
+      resolveBoardId: vi.fn(async () => ok('board-1')),
+      listCards: vi.fn(async () => ok([])),
+      addComment: vi.fn(async () => {
+        throw new Error('No deberia ejecutarse');
+      }),
+      listBoards: vi.fn(async () => ok([])),
+      resolveBoard: vi.fn(async () => err(ambiguousBoardError)),
+    });
+
+    const result = await useCase.execute({
+      cardName: 'Fix login bug',
+      boardName: 'Delivery Board',
+      text: 'Comentario',
+    });
+
+    expect(result.ok).toBe(false);
+
+    if (result.ok) {
+      throw new Error('Se esperaba un resultado fallido');
+    }
+
+    expect(result.error.code).toBe(ErrorCode.BoardAmbiguous);
   });
 });

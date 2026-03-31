@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { createBoardIdRequiredError, type CardSummary } from '../../../src/domain/index.js';
+import {
+  createBoardAmbiguousError,
+  createBoardIdRequiredError,
+  type CardSummary,
+} from '../../../src/domain/index.js';
 import { createSearchCardsUseCase } from '../../../src/application/search-cards.js';
 import { err, ok } from '../../../src/shared/index.js';
 
@@ -76,5 +80,121 @@ describe('Caso de uso SearchCards', () => {
     });
 
     await expect(useCase.execute({ query: 'auth' })).resolves.toEqual(err(boardIdRequiredError));
+  });
+
+  /**
+   * Verifica que un termino parcial sigue matcheando por substring (ej: auth -> AuthenticationService).
+   */
+  it('debe matchear palabras parciales en la busqueda', async () => {
+    const cards: CardSummary[] = [
+      {
+        id: 'card-1',
+        name: 'AuthenticationService refactor',
+        idList: 'list-1',
+        listName: 'To Do',
+        boardId: 'board-1',
+        closed: false,
+        shortUrl: 'https://trello.com/c/card-1',
+        due: null,
+      },
+    ];
+
+    const useCase = createSearchCardsUseCase({
+      resolveBoardId: async () => ok('board-1'),
+      listCards: async () => ok(cards),
+      listBoards: async () => ok([]),
+      resolveBoard: async () => ok('board-1'),
+    });
+
+    const result = await useCase.execute({ query: 'auth' });
+
+    expect(result).toEqual(
+      ok({
+        boardId: 'board-1',
+        cards,
+        truncated: false,
+      })
+    );
+  });
+
+  /**
+   * Verifica que limite+truncado respetan el maximo solicitado en resultados grandes.
+   */
+  it('debe respetar limit y marcar truncated cuando hay mas resultados', async () => {
+    const cards: CardSummary[] = [
+      {
+        id: 'card-1',
+        name: 'Bug one',
+        idList: 'list-1',
+        listName: 'To Do',
+        boardId: 'board-1',
+        closed: false,
+        shortUrl: 'https://trello.com/c/card-1',
+        due: null,
+      },
+      {
+        id: 'card-2',
+        name: 'Bug two',
+        idList: 'list-1',
+        listName: 'To Do',
+        boardId: 'board-1',
+        closed: false,
+        shortUrl: 'https://trello.com/c/card-2',
+        due: null,
+      },
+      {
+        id: 'card-3',
+        name: 'Bug three',
+        idList: 'list-1',
+        listName: 'To Do',
+        boardId: 'board-1',
+        closed: false,
+        shortUrl: 'https://trello.com/c/card-3',
+        due: null,
+      },
+    ];
+
+    const useCase = createSearchCardsUseCase({
+      resolveBoardId: async () => ok('board-1'),
+      listCards: async () => ok(cards),
+      listBoards: async () => ok([]),
+      resolveBoard: async () => ok('board-1'),
+    });
+
+    const result = await useCase.execute({ query: 'bug', limit: 2 });
+
+    expect(result).toEqual(
+      ok({
+        boardId: 'board-1',
+        cards: [cards[0], cards[1]],
+        truncated: true,
+      })
+    );
+  });
+
+  /**
+   * Verifica que la ambiguedad de boardName se propaga sin intentar listar tarjetas.
+   */
+  it('debe propagar error de board ambiguo cuando resolveBoard falla por multiples matches', async () => {
+    const ambiguousBoardError = createBoardAmbiguousError(
+      [
+        { id: 'board-1', name: 'Delivery Board' },
+        { id: 'board-2', name: 'delivery   board' },
+      ],
+      'Delivery Board'
+    );
+
+    const useCase = createSearchCardsUseCase({
+      resolveBoardId: async () => ok('board-1'),
+      listCards: async () => {
+        throw new Error('No deberia listar tarjetas cuando resolveBoard falla');
+      },
+      listBoards: async () => ok([]),
+      resolveBoard: async () => err(ambiguousBoardError),
+    });
+
+    const result = await useCase.execute({ query: 'login', boardName: 'Delivery Board' });
+
+    expect(result).toEqual(err(ambiguousBoardError));
   });
 });
