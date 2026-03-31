@@ -8,6 +8,11 @@ import { createCreateCardTool, type CreateCardToolHandler } from './tools/create
 import { createListBoardsTool, type ListBoardsToolHandler } from './tools/list-boards.js';
 import { createMoveCardTool, type MoveCardToolHandler } from './tools/move-card.js';
 import { createSearchCardsTool, type SearchCardsToolHandler } from './tools/search-cards.js';
+import {
+  createBoardSummaryResource,
+  createBoardOverdueResource,
+  createBoardByLabelResource,
+} from './resources/index.js';
 
 const allToolNames = [
   'bootstrap.status',
@@ -54,6 +59,9 @@ export interface BootstrapHandlers {
   createCardTool: CreateCardToolHandler;
   moveCardTool: MoveCardToolHandler;
   addLabelsTool: AddLabelsToolHandler;
+  boardSummaryResource: ReturnType<typeof createBoardSummaryResource>;
+  boardOverdueResource: ReturnType<typeof createBoardOverdueResource>;
+  boardByLabelResource: ReturnType<typeof createBoardByLabelResource>;
 }
 
 const formatBootstrapStatusText = (status: BootstrapDiagnosticSnapshot): string => {
@@ -99,5 +107,8 @@ export const createBootstrapHandlers = (dependencies: ApplicationDependencies): 
     createCardTool: createCreateCardTool(dependencies.createCard),
     moveCardTool: createMoveCardTool(dependencies.moveCard),
     addLabelsTool: createAddLabelsTool(dependencies.addLabels),
+    boardSummaryResource: createBoardSummaryResource(dependencies.boardSummary),
+    boardOverdueResource: createBoardOverdueResource(dependencies.boardOverdue),
+    boardByLabelResource: createBoardByLabelResource(dependencies.boardByLabel),
   };
 };

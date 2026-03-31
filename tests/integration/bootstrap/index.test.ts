@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const registerToolSpy = vi.fn();
+const registerResourceSpy = vi.fn();
 const connectSpy = vi.fn();
 const mcpServerConstructorSpy = vi.fn();
 const stdioTransportConstructorSpy = vi.fn();
@@ -14,11 +15,17 @@ vi.mock('@modelcontextprotocol/sdk/server/mcp.js', () => {
     }
 
     registerTool = registerToolSpy;
+    registerResource = registerResourceSpy;
     connect = connectSpy;
+  }
+
+  class MockResourceTemplate {
+    constructor(public pattern: string, public options: unknown) {}
   }
 
   return {
     McpServer: MockMcpServer,
+    ResourceTemplate: MockResourceTemplate,
   };
 });
 

@@ -3,6 +3,9 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 
 import { createAddCommentUseCase } from './application/add-comment.js';
 import { createAddLabelsUseCase } from './application/add-labels.js';
+import { createBoardByLabelUseCase } from './application/board-by-label.js';
+import { createBoardOverdueUseCase } from './application/board-overdue.js';
+import { createBoardSummaryUseCase } from './application/board-summary.js';
 import { createApplicationDependencies } from './application/bootstrap.js';
 import { createCreateCardUseCase } from './application/create-card.js';
 import { createListBoardsUseCase } from './application/list-boards.js';
@@ -41,6 +44,9 @@ const main = async (): Promise<void> => {
   const createCard = createCreateCardUseCase(trelloGateway);
   const moveCard = createMoveCardUseCase(trelloGateway);
   const addLabels = createAddLabelsUseCase(trelloGateway);
+  const boardSummary = createBoardSummaryUseCase(trelloGateway);
+  const boardOverdue = createBoardOverdueUseCase(trelloGateway);
+  const boardByLabel = createBoardByLabelUseCase(trelloGateway);
   const dependencies = createApplicationDependencies(config, {
     searchCards,
     addComment,
@@ -48,6 +54,9 @@ const main = async (): Promise<void> => {
     createCard,
     moveCard,
     addLabels,
+    boardSummary,
+    boardOverdue,
+    boardByLabel,
   });
   const handlers = createBootstrapHandlers(dependencies);
   const server = new McpServer(bootstrapServerDefinition.info, bootstrapServerDefinition.options);

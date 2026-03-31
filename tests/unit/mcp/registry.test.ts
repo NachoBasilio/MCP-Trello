@@ -14,12 +14,13 @@ import {
   bootstrapServerDefinition,
   registerBootstrapCapabilities,
 } from '../../../src/mcp/registry.js';
+import { ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js';
 
 /**
  * Protege el wiring de metadata y registro MCP.
  */
 describe('Registry MCP del servidor', () => {
-  it('debe publicar metadata del servidor con 7 tools', () => {
+  it('debe publicar metadata del servidor con 7 tools y 3 resources', () => {
     expect(bootstrapServerDefinition.info).toEqual({
       name: 'server-mcp-trello',
       version: '0.1.0',
@@ -27,16 +28,23 @@ describe('Registry MCP del servidor', () => {
     expect(bootstrapServerDefinition.options.instructions).toContain('trello_create_card');
     expect(bootstrapServerDefinition.options.instructions).toContain('trello_move_card');
     expect(bootstrapServerDefinition.options.instructions).toContain('trello_add_labels');
-    expect(bootstrapServerCapabilities).toEqual({ tools: {} });
+    expect(bootstrapServerDefinition.options.instructions).toContain('board-summary');
+    expect(bootstrapServerDefinition.options.instructions).toContain('board-overdue');
+    expect(bootstrapServerDefinition.options.instructions).toContain('board-by-label');
+    expect(bootstrapServerCapabilities).toEqual({ tools: {}, resources: {} });
   });
 
-  it('debe registrar las 7 tools sobre el servidor MCP', () => {
+  it('debe registrar las 7 tools y 3 resources sobre el servidor MCP', () => {
     const registerTool = vi.fn();
+    const registerResource = vi.fn();
     const server = {
       registerTool,
+      registerResource,
     } as unknown as Parameters<typeof registerBootstrapCapabilities>[0];
     const execute = vi.fn();
+    const read = vi.fn();
     const mockSchema = { field: zod.string() } as any;
+    const mockTemplate = new ResourceTemplate('trello://boards/{boardId}/summary', { list: undefined });
     const handlers: BootstrapHandlers = {
       diagnosticTool: {
         name: 'bootstrap.status',
@@ -109,10 +117,41 @@ describe('Registry MCP del servidor', () => {
         outputSchema: mockSchema,
         execute,
       },
+      boardSummaryResource: {
+        name: 'board-summary',
+        template: mockTemplate,
+        metadata: {
+          title: 'Resumen de Board',
+          description: 'Resumen.',
+          mimeType: 'application/json',
+        },
+        read,
+      },
+      boardOverdueResource: {
+        name: 'board-overdue',
+        template: mockTemplate,
+        metadata: {
+          title: 'Tarjetas Vencidas',
+          description: 'Vencidas.',
+          mimeType: 'application/json',
+        },
+        read,
+      },
+      boardByLabelResource: {
+        name: 'board-by-label',
+        template: mockTemplate,
+        metadata: {
+          title: 'Tarjetas por Label',
+          description: 'Por label.',
+          mimeType: 'application/json',
+        },
+        read,
+      },
     };
 
     registerBootstrapCapabilities(server, handlers);
 
     expect(registerTool).toHaveBeenCalledTimes(7);
+    expect(registerResource).toHaveBeenCalledTimes(3);
   });
 });

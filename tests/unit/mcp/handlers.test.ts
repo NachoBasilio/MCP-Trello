@@ -43,6 +43,9 @@ const baseDependencies: ApplicationDependencies = {
   createCard: mockUseCase(),
   moveCard: mockUseCase(),
   addLabels: mockUseCase(ok([])),
+  boardSummary: mockUseCase(ok({ boardId: 'board-1', listCount: 3, cardCount: 10, lists: [] })),
+  boardOverdue: mockUseCase(ok({ boardId: 'board-1', overdueCards: [], overdueCount: 0 })),
+  boardByLabel: mockUseCase(ok({ boardId: 'board-1', labelName: 'bug', matchingCards: [], cardCount: 0 })),
   getBootstrapStatus: vi.fn(() => bootstrapStatusFixture),
 };
 
@@ -51,9 +54,9 @@ const baseDependencies: ApplicationDependencies = {
  */
 describe('Handlers MCP del servidor', () => {
   /**
-   * Asegura que el handler registre todas las tools del servidor.
+   * Asegura que el handler registre todas las tools y resources del servidor.
    */
-  it('debe exponer todas las tools del servidor', () => {
+  it('debe exponer todas las tools y resources del servidor', () => {
     const handlers = createBootstrapHandlers({ ...baseDependencies });
 
     expect(Object.keys(handlers)).toEqual([
@@ -64,6 +67,9 @@ describe('Handlers MCP del servidor', () => {
       'createCardTool',
       'moveCardTool',
       'addLabelsTool',
+      'boardSummaryResource',
+      'boardOverdueResource',
+      'boardByLabelResource',
     ]);
     expect(handlers.diagnosticTool.name).toBe('bootstrap.status');
     expect(handlers.searchCardsTool.name).toBe('trello_search_cards');
@@ -72,6 +78,9 @@ describe('Handlers MCP del servidor', () => {
     expect(handlers.createCardTool.name).toBe('trello_create_card');
     expect(handlers.moveCardTool.name).toBe('trello_move_card');
     expect(handlers.addLabelsTool.name).toBe('trello_add_labels');
+    expect(handlers.boardSummaryResource.name).toBe('board-summary');
+    expect(handlers.boardOverdueResource.name).toBe('board-overdue');
+    expect(handlers.boardByLabelResource.name).toBe('board-by-label');
   });
 
   /**
