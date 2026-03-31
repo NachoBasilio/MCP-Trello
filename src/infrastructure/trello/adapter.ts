@@ -1,3 +1,8 @@
+/**
+ * Crea el adapter completo de Trello implementando el puerto TrelloGateway.
+ * Maneja resolucion de board con precedence deterministica y soporte para reintentos.
+ */
+
 import type { Config } from '../../config/index.js';
 import {
   createBoardAmbiguousError,
@@ -19,16 +24,82 @@ import { fetchBoardCards, createTrelloCard, updateTrelloCard } from './card-api.
 import { fetchBoardLists, createBoardList } from './list-api.js';
 import { fetchBoardLabels, addLabelToCard, createBoardLabel } from './label-api.js';
 import { postCardComment, fetchCardComments } from './comment-api.js';
+import { createFetchWithRetry } from './retry.js';
 
-type FetchLike = typeof fetch;
+/**
+ * Normaliza un nombre de board para comparacion case-insensitive y collapse de whitespace.
+ * @param name - Nombre original del board.
+ * @returns Nombre normalizado (trim, lowercase, espacios multiples reducidos a uno).
+ */
+export const normalizeBoardName = (name: string): string => {
+  return name.trim().replace(/\s+/g, ' ').toLowerCase();
+};
+
+/**
+ * Resuelve un board ID usando la precedencia: boardId > boardName > default > autodiscovery.
+ * @param config - Configuracion con TRELLO_DEFAULT_BOARD_ID.
+ * @param input - Input con boardId y/o boardName opcional.
+ * @param boards - Lista de boards accesibles del miembro.
+ * @returns Result con el board ID resuelto o error de dominio.
+ */
+const resolveBoardPrecedence = (
+  config: Config,
+  input: { boardId?: string; boardName?: string },
+  boards: Board[]
+): Result<string, DomainError> => {
+  const explicitBoardId = input.boardId?.trim();
+  if (explicitBoardId) {
+    return ok(explicitBoardId);
+  }
+
+  if (input.boardName) {
+    const normalizedInputName = normalizeBoardName(input.boardName);
+    const matches: Board[] = [];
+
+    for (const board of boards) {
+      if (normalizeBoardName(board.name) === normalizedInputName) {
+        matches.push(board);
+      }
+    }
+
+    if (matches.length === 0) {
+      return err(createBoardNotFoundError());
+    }
+
+    if (matches.length > 1) {
+      return err(
+        createBoardAmbiguousError(
+          matches.map((board) => ({ id: board.id, name: board.name })),
+          input.boardName
+        )
+      );
+    }
+
+    return ok(matches[0].id);
+  }
+
+  const defaultBoardId = config.TRELLO_DEFAULT_BOARD_ID?.trim();
+  if (defaultBoardId) {
+    return ok(defaultBoardId);
+  }
+
+  if (boards.length === 1) {
+    return ok(boards[0].id);
+  }
+
+  return err(createBoardIdRequiredError());
+};
 
 /**
  * Crea el adapter completo de Trello implementando el puerto TrelloGateway.
+ * Usa createFetchWithRetry para envolver todas las llamadas HTTP con reintentos automaticos.
  */
 export const createTrelloSearchCardsAdapter = (
   config: Config,
-  fetchImplementation: FetchLike = fetch
+  fetchImplementation: typeof fetch = fetch
 ): TrelloGateway => {
+  const fetchWithRetry = createFetchWithRetry(fetchImplementation);
+
   return {
     resolveBoardId: async (boardId?: string): Promise<Result<string, DomainError>> => {
       const candidateBoardId = boardId?.trim() || config.TRELLO_DEFAULT_BOARD_ID?.trim();
@@ -41,15 +112,15 @@ export const createTrelloSearchCardsAdapter = (
     },
 
     listCards: async (boardId: string): Promise<Result<CardSummary[], DomainError>> => {
-      return fetchBoardCards(config, boardId, fetchImplementation);
+      return fetchBoardCards(config, boardId, fetchWithRetry);
     },
 
     addComment: async (cardId: string, text: string): Promise<Result<Comment, DomainError>> => {
-      return postCardComment(config, cardId, text, fetchImplementation);
+      return postCardComment(config, cardId, text, fetchWithRetry);
     },
 
     listBoards: async (): Promise<Result<Board[], DomainError>> => {
-      return fetchMemberBoards(config, 'me', fetchImplementation);
+      return fetchMemberBoards(config, 'me', fetchWithRetry);
     },
 
     resolveBoard: async (input: {
@@ -61,62 +132,21 @@ export const createTrelloSearchCardsAdapter = (
         return ok(explicitBoardId);
       }
 
-      if (input.boardName) {
-        const boardsResult = await fetchMemberBoards(config, 'me', fetchImplementation);
-
-        if (!boardsResult.ok) {
-          return boardsResult;
-        }
-
-        const normalizedName = normalizeBoardName(input.boardName);
-        const matches: Board[] = [];
-
-        for (const board of boardsResult.value) {
-          if (normalizeBoardName(board.name) === normalizedName) {
-            matches.push(board);
-          }
-        }
-
-        if (matches.length === 0) {
-          return err(createBoardNotFoundError());
-        }
-
-        if (matches.length > 1) {
-          return err(
-            createBoardAmbiguousError(
-              matches.map((board) => ({ id: board.id, name: board.name })),
-              input.boardName
-            )
-          );
-        }
-
-        return ok(matches[0].id);
-      }
-
-      const defaultBoardId = config.TRELLO_DEFAULT_BOARD_ID?.trim();
-      if (defaultBoardId) {
-        return ok(defaultBoardId);
-      }
-
-      const boardsResult = await fetchMemberBoards(config, 'me', fetchImplementation);
+      const boardsResult = await fetchMemberBoards(config, 'me', fetchWithRetry);
 
       if (!boardsResult.ok) {
         return boardsResult;
       }
 
-      if (boardsResult.value.length === 1) {
-        return ok(boardsResult.value[0].id);
-      }
-
-      return err(createBoardIdRequiredError());
+      return resolveBoardPrecedence(config, input, boardsResult.value);
     },
 
     listBoardLists: async (boardId: string): Promise<Result<List[], DomainError>> => {
-      return fetchBoardLists(config, boardId, fetchImplementation);
+      return fetchBoardLists(config, boardId, fetchWithRetry);
     },
 
     createList: async (boardId: string, name: string): Promise<Result<List, DomainError>> => {
-      return createBoardList(config, boardId, name, fetchImplementation);
+      return createBoardList(config, boardId, name, fetchWithRetry);
     },
 
     createCard: async (input: {
@@ -125,7 +155,7 @@ export const createTrelloSearchCardsAdapter = (
       description?: string;
       pos?: string;
     }): Promise<Result<Card, DomainError>> => {
-      return createTrelloCard(config, input, fetchImplementation);
+      return createTrelloCard(config, input, fetchWithRetry);
     },
 
     updateCard: async (
@@ -139,15 +169,15 @@ export const createTrelloSearchCardsAdapter = (
         closed?: boolean;
       }
     ): Promise<Result<Card, DomainError>> => {
-      return updateTrelloCard(config, cardId, input, fetchImplementation);
+      return updateTrelloCard(config, cardId, input, fetchWithRetry);
     },
 
     listBoardLabels: async (boardId: string): Promise<Result<Label[], DomainError>> => {
-      return fetchBoardLabels(config, boardId, fetchImplementation);
+      return fetchBoardLabels(config, boardId, fetchWithRetry);
     },
 
     addLabel: async (cardId: string, labelId: string): Promise<Result<void, DomainError>> => {
-      return addLabelToCard(config, cardId, labelId, fetchImplementation);
+      return addLabelToCard(config, cardId, labelId, fetchWithRetry);
     },
 
     createLabel: async (
@@ -155,15 +185,11 @@ export const createTrelloSearchCardsAdapter = (
       name: string,
       color: string
     ): Promise<Result<Label, DomainError>> => {
-      return createBoardLabel(config, boardId, name, color, fetchImplementation);
+      return createBoardLabel(config, boardId, name, color, fetchWithRetry);
     },
 
     listCardComments: async (cardId: string): Promise<Result<Comment[], DomainError>> => {
-      return fetchCardComments(config, cardId, fetchImplementation);
+      return fetchCardComments(config, cardId, fetchWithRetry);
     },
   };
-};
-
-const normalizeBoardName = (name: string): string => {
-  return name.trim().replace(/\s+/g, ' ').toLowerCase();
 };

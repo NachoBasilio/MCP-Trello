@@ -22,8 +22,11 @@ export const mapTrelloHttpError = async (response: Response): Promise<DomainErro
       return createAuthError('Invalid Trello credentials or insufficient permissions');
     case 404:
       return createBoardNotFoundError();
-    case 429:
-      return createRateLimitedError();
+    case 429: {
+      const retryAfterHeader = response.headers.get('retry-after');
+      const retryAfterSeconds = retryAfterHeader ? Number.parseInt(retryAfterHeader, 10) : undefined;
+      return createRateLimitedError(Number.isNaN(retryAfterSeconds) ? undefined : retryAfterSeconds);
+    }
     default:
       return createTrelloApiError(`Unexpected Trello response (${response.status})`, {
         status: response.status,
