@@ -65,22 +65,22 @@ This task plan depends on `mcp-bootstrap-opencode` for bootstrap/source-of-truth
 
 ## Layer 5: Testing
 
-- [ ] 5.1 Write unit tests for `src/domain/errors.ts` - error codes and DomainError class
-- [ ] 5.2 Write unit tests for `src/domain/entities/card.ts` - Card entity creation and validation
-- [ ] 5.3 Write unit tests for `src/shared/index.ts` - Result type operations (ok, err, isOk, isErr)
-- [ ] 5.4 Write unit tests for `src/infrastructure/trello/adapter.ts` - HTTP error mapping, rate limit handling
-- [ ] 5.5 Write unit tests for `src/infrastructure/trello/mappers.ts` - DTO to entity mapping
-- [ ] 5.6 Write contract tests for `src/application/create-card.ts` - implicit list creation scenario
-- [ ] 5.7 Write contract tests for `src/application/move-card.ts` - disambiguation on multiple matches
+- [x] 5.1 Write unit tests for `src/domain/errors.ts` - error codes and DomainError class
+- [x] 5.2 Write unit tests for `src/domain/entities/card.ts` - Card entity creation and validation
+- [x] 5.3 Write unit tests for `src/shared/index.ts` - Result type operations (ok, err, isOk, isErr)
+- [x] 5.4 Write unit tests for `src/infrastructure/trello/adapter.ts` - HTTP error mapping, rate limit handling
+- [x] 5.5 Write unit tests for `src/infrastructure/trello/mappers.ts` - DTO to entity mapping
+- [x] 5.6 Write contract tests for `src/application/create-card.ts` - implicit list creation scenario
+- [x] 5.7 Write contract tests for `src/application/move-card.ts` - disambiguation on multiple matches
 - [x] 5.8 Write contract tests for `src/application/search-cards.ts` - substring matching AND logic
 - [x] 5.9 Write minimum contract tests for `src/application/add-comment.ts` - empty text, name resolution, and direct cardId path
-- [ ] 5.10 Write unit tests for `src/application/board-overdue.ts` - overdueDays calculation
-- [ ] 5.11 Write integration tests for `src/mcp/tools/create-card.ts` - full flow from MCP call to Trello API
-- [ ] 5.12 Write integration tests for `src/mcp/tools/move-card.ts` - error -32002 (ambiguous) scenario
-- [ ] 5.13 Write integration tests for `src/mcp/resources/board-summary.ts` - resource response format
-- [ ] 5.14 Write tests for the Trello search slice boundary - multiple terms, partial words, and limit/truncation across runtime layers
-- [ ] 5.15 Add unit and contract tests for board resolution precedence: explicit `boardId` wins over `boardName`, normalized exact `boardName` match resolves deterministically, failed `boardName` does not fall back, and single-board auto-discovery triggers only when exactly one accessible board exists
-- [ ] 5.16 Add ambiguous-board error coverage for both `trello_search_cards` and `trello_add_comment` when normalized board names match multiple accessible boards
+- [x] 5.10 Write unit tests for `src/application/board-overdue.ts` - overdueDays calculation
+- [x] 5.11 Write integration tests for `src/mcp/tools/create-card.ts` - full flow from MCP call to Trello API
+- [x] 5.12 Write integration tests for `src/mcp/tools/move-card.ts` - error -32002 (ambiguous) scenario
+- [x] 5.13 Write integration tests for `src/mcp/resources/board-summary.ts` - resource response format
+- [x] 5.14 Write tests for the Trello search slice boundary - multiple terms, partial words, and limit/truncation across runtime layers
+- [x] 5.15 Add unit and contract tests for board resolution precedence: explicit `boardId` wins over `boardName`, normalized exact `boardName` match resolves deterministically, failed `boardName` does not fall back, and single-board auto-discovery triggers only when exactly one accessible board exists
+- [x] 5.16 Add ambiguous-board error coverage for both `trello_search_cards` and `trello_add_comment` when normalized board names match multiple accessible boards
 
 ## Dependencies
 
