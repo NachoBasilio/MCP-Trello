@@ -7,6 +7,7 @@ import { createAddLabelsTool, type AddLabelsToolHandler } from './tools/add-labe
 import { createCreateCardTool, type CreateCardToolHandler } from './tools/create-card.js';
 import { createListBoardsTool, type ListBoardsToolHandler } from './tools/list-boards.js';
 import { createMoveCardTool, type MoveCardToolHandler } from './tools/move-card.js';
+import { createDeleteCardTool, type DeleteCardToolHandler } from './tools/delete-card.js';
 import { createSearchCardsTool, type SearchCardsToolHandler } from './tools/search-cards.js';
 import {
   createBoardSummaryResource,
@@ -21,6 +22,7 @@ const allToolNames = [
   'trello_list_boards',
   'trello_create_card',
   'trello_move_card',
+  'trello_delete_card',
   'trello_add_labels',
 ] as const;
 
@@ -36,6 +38,7 @@ const bootstrapStatusOutputSchema = {
     zod.literal(allToolNames[4]),
     zod.literal(allToolNames[5]),
     zod.literal(allToolNames[6]),
+    zod.literal(allToolNames[7]),
   ]),
   trelloRuntimeAvailable: zod.literal(true),
   trelloWriteRuntimeAvailable: zod.literal(true),
@@ -58,6 +61,7 @@ export interface BootstrapHandlers {
   listBoardsTool: ListBoardsToolHandler;
   createCardTool: CreateCardToolHandler;
   moveCardTool: MoveCardToolHandler;
+  deleteCardTool: DeleteCardToolHandler;
   addLabelsTool: AddLabelsToolHandler;
   boardSummaryResource: ReturnType<typeof createBoardSummaryResource>;
   boardOverdueResource: ReturnType<typeof createBoardOverdueResource>;
@@ -106,6 +110,7 @@ export const createBootstrapHandlers = (dependencies: ApplicationDependencies): 
     listBoardsTool: createListBoardsTool(dependencies.listBoards),
     createCardTool: createCreateCardTool(dependencies.createCard),
     moveCardTool: createMoveCardTool(dependencies.moveCard),
+    deleteCardTool: createDeleteCardTool(dependencies.deleteCard),
     addLabelsTool: createAddLabelsTool(dependencies.addLabels),
     boardSummaryResource: createBoardSummaryResource(dependencies.boardSummary),
     boardOverdueResource: createBoardOverdueResource(dependencies.boardOverdue),

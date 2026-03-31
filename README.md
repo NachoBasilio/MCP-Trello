@@ -77,39 +77,32 @@ Esta recomendación se basa en el README oficial del repositorio, que indica que
 
 ## Estado del proyecto
 
-Actualmente este repositorio ya tiene un bootstrap MCP runnable sobre `stdio`, pero todavia no implementa runtime funcional de Trello.
+El runtime MCP ya expone **8 tools** y **3 resources** conectados al cliente real de Trello. El adapter aplica la precedencia de board (`boardId` > `boardName` normalizado > `TRELLO_DEFAULT_BOARD_ID` > autodiscovery de un solo board) y ahora incorpora backoff exponencial (1s, 2s, 4s) ante respuestas 429 o fallos de red antes de propagar un error `Rate limited`.
 
 Completado hasta ahora:
 
 - bootstrap runnable del servidor MCP sobre `stdio`
-- tool diagnostica `bootstrap.status`
-- tests unitarios e integracion del bootstrap MCP
-- documentación base del workflow
-- skills locales y guía de agentes
-- convenciones iniciales del proyecto
-- foundations de dominio, configuración y utilidades compartidas
-
-Pendiente:
-
-- integración con cliente de Trello
-- implementación de tools y resources MCP de Trello
-- cobertura automatizada del runtime real de Trello
+- tool diagnóstica `bootstrap.status`
+- integración completa con Trello (boards, lists, cards, labels, comments)
+- 8 tools (`trello_search_cards`, `trello_add_comment`, `trello_list_boards`, `trello_create_card`, `trello_move_card`, `trello_delete_card`, `trello_add_labels`, tool diagnóstica) y 3 resources (`board-summary`, `board-overdue`, `board-by-label`)
+- documentación base del workflow + skills locales
+- board resolution determinística y retries centralizados
+- cobertura completa de Unit Tests, Integración y Contratos (Layer 5 SDD cubierto)
 
 ## Estado verificado del bootstrap MCP
 
 Evidencia actual del repo:
 
-- `src/index.ts` crea un `McpServer`, registra capacidades bootstrap y conecta `StdioServerTransport`.
-- `src/mcp/registry.ts` publica metadata honesta y registra una sola tool diagnostica.
-- `src/mcp/handlers.ts` expone solamente `bootstrap.status` con `capabilityPolicy: 'diagnostic-only'` y `trelloRuntimeAvailable: false`.
-- `src/application/bootstrap.ts` arma dependencias bootstrap-safe sin adapters ni runtime de Trello.
+- `src/index.ts` crea un `McpServer`, registra todas las capacidades MCP de Trello y conecta `StdioServerTransport`.
+- `src/mcp/registry.ts` publica metadata honesta con 8 tools y 3 resources.
+- `src/mcp/handlers.ts` expone el tool map completo bajo `capabilityPolicy: 'diagnostic-plus-full-trello'` y `trelloRuntimeAvailable: true`.
+- `src/application/bootstrap.ts` arma las dependencias y todos los use cases conectados a infraestructura.
 
-La arquitectura descripta en este README sigue siendo la arquitectura objetivo. Lo implementado hoy es solo el bootstrap local por `stdio` con una capacidad diagnostica; Trello runtime, tools y resources reales siguen pendientes.
+La arquitectura descripta en este README se ha implementado de forma completa.
 
 ## Cambios SDD activos
 
-- `mcp-bootstrap-opencode`: define la fuente de verdad del bootstrap y alinea documentación con el estado real del repo.
-- `trello-mcp-tool-contract`: define el trabajo downstream para agregar tools/resources reales de Trello encima del bootstrap ya existente.
+- Ya no hay cambios activos pendientes. Las features principales (`mcp-bootstrap-opencode` y `trello-mcp-tool-contract`) fueron implementadas y archivadas.
 
 ## Scripts
 

@@ -45,6 +45,8 @@ export interface TrelloGateway extends TrelloBoardPort {
     closed?: boolean;
   }): Promise<Result<Card, DomainError>>;
 
+  deleteCard(cardId: string): Promise<Result<void, DomainError>>;
+
   listBoardLabels(boardId: string): Promise<Result<Label[], DomainError>>;
   addLabel(cardId: string, labelId: string): Promise<Result<void, DomainError>>;
   createLabel(boardId: string, name: string, color: string): Promise<Result<Label, DomainError>>;

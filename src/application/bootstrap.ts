@@ -5,6 +5,7 @@ import type { BoardByLabelUseCase } from './board-by-label.js';
 import type { BoardOverdueUseCase } from './board-overdue.js';
 import type { BoardSummaryUseCase } from './board-summary.js';
 import type { CreateCardUseCase } from './create-card.js';
+import type { DeleteCardUseCase } from './delete-card.js';
 import type { ListBoardsUseCase } from './list-boards.js';
 import type { MoveCardUseCase } from './move-card.js';
 import type { SearchCardsUseCase } from './search-cards.js';
@@ -20,6 +21,7 @@ export interface BootstrapDiagnosticSnapshot {
     'trello_list_boards',
     'trello_create_card',
     'trello_move_card',
+    'trello_delete_card',
     'trello_add_labels'
   ];
   trelloRuntimeAvailable: true;
@@ -34,6 +36,7 @@ export interface ApplicationRuntime {
   listBoards: ListBoardsUseCase;
   createCard: CreateCardUseCase;
   moveCard: MoveCardUseCase;
+  deleteCard: DeleteCardUseCase;
   addLabels: AddLabelsUseCase;
   boardSummary: BoardSummaryUseCase;
   boardOverdue: BoardOverdueUseCase;
@@ -47,6 +50,7 @@ export interface ApplicationDependencies {
   listBoards: ListBoardsUseCase;
   createCard: CreateCardUseCase;
   moveCard: MoveCardUseCase;
+  deleteCard: DeleteCardUseCase;
   addLabels: AddLabelsUseCase;
   boardSummary: BoardSummaryUseCase;
   boardOverdue: BoardOverdueUseCase;
@@ -65,6 +69,7 @@ export const createApplicationDependencies = (config: Config, runtime: Applicati
     listBoards: runtime.listBoards,
     createCard: runtime.createCard,
     moveCard: runtime.moveCard,
+    deleteCard: runtime.deleteCard,
     addLabels: runtime.addLabels,
     boardSummary: runtime.boardSummary,
     boardOverdue: runtime.boardOverdue,
@@ -80,6 +85,7 @@ export const createApplicationDependencies = (config: Config, runtime: Applicati
         'trello_list_boards',
         'trello_create_card',
         'trello_move_card',
+        'trello_delete_card',
         'trello_add_labels',
       ],
       trelloRuntimeAvailable: true,

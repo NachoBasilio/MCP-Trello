@@ -98,7 +98,7 @@ describe('Entrypoint del bootstrap MCP', () => {
 
     await vi.waitFor(() => {
       expect(mcpServerConstructorSpy).toHaveBeenCalledTimes(1);
-      expect(registerToolSpy).toHaveBeenCalledTimes(7);
+      expect(registerToolSpy).toHaveBeenCalledTimes(8);
       expect(registerResourceSpy).toHaveBeenCalledTimes(3);
       expect(stdioTransportConstructorSpy).toHaveBeenCalledTimes(1);
       expect(connectSpy).toHaveBeenCalledTimes(1);

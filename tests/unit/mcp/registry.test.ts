@@ -20,13 +20,14 @@ import { ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js';
  * Protege el wiring de metadata y registro MCP.
  */
 describe('Registry MCP del servidor', () => {
-  it('debe publicar metadata del servidor con 7 tools y 3 resources', () => {
+  it('debe publicar metadata del servidor con 8 tools y 3 resources', () => {
     expect(bootstrapServerDefinition.info).toEqual({
       name: 'server-mcp-trello',
       version: '0.1.0',
     });
     expect(bootstrapServerDefinition.options.instructions).toContain('trello_create_card');
     expect(bootstrapServerDefinition.options.instructions).toContain('trello_move_card');
+    expect(bootstrapServerDefinition.options.instructions).toContain('trello_delete_card');
     expect(bootstrapServerDefinition.options.instructions).toContain('trello_add_labels');
     expect(bootstrapServerDefinition.options.instructions).toContain('board-summary');
     expect(bootstrapServerDefinition.options.instructions).toContain('board-overdue');
@@ -34,7 +35,7 @@ describe('Registry MCP del servidor', () => {
     expect(bootstrapServerCapabilities).toEqual({ tools: {}, resources: {} });
   });
 
-  it('debe registrar las 7 tools y 3 resources sobre el servidor MCP', () => {
+  it('debe registrar las 8 tools y 3 resources sobre el servidor MCP', () => {
     const registerTool = vi.fn();
     const registerResource = vi.fn();
     const server = {
@@ -61,6 +62,7 @@ describe('Registry MCP del servidor', () => {
             zod.literal('trello_list_boards'),
             zod.literal('trello_create_card'),
             zod.literal('trello_move_card'),
+            zod.literal('trello_delete_card'),
             zod.literal('trello_add_labels'),
           ]),
           trelloRuntimeAvailable: zod.literal(true),
@@ -109,6 +111,14 @@ describe('Registry MCP del servidor', () => {
         outputSchema: mockSchema,
         execute,
       },
+      deleteCardTool: {
+        name: 'trello_delete_card',
+        title: 'Eliminar tarjeta',
+        description: 'Elimina.',
+        inputSchema: mockSchema,
+        outputSchema: mockSchema,
+        execute,
+      },
       addLabelsTool: {
         name: 'trello_add_labels',
         title: 'Agregar labels',
@@ -151,7 +161,7 @@ describe('Registry MCP del servidor', () => {
 
     registerBootstrapCapabilities(server, handlers);
 
-    expect(registerTool).toHaveBeenCalledTimes(7);
+    expect(registerTool).toHaveBeenCalledTimes(8);
     expect(registerResource).toHaveBeenCalledTimes(3);
   });
 });
