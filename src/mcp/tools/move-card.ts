@@ -7,15 +7,21 @@ import { isErr } from '../../shared/index.js';
 const moveCardSchemaBase = zod.object({
   cardName: zod.string().trim().min(1).optional(),
   cardId: zod.string().trim().min(1).optional(),
-  toList: zod.string().trim().min(1, 'Target list name is required'),
+  toList: zod.string().trim().min(1).optional(),
+  toListId: zod.string().trim().min(1).optional(),
   boardId: zod.string().trim().min(1).optional(),
   boardName: zod.string().trim().min(1).optional(),
 });
 
-export const moveCardInputSchema = moveCardSchemaBase.refine(
-  (value) => typeof value.cardId === 'string' || typeof value.cardName === 'string',
-  { message: 'cardId or cardName is required', path: ['cardId'] }
-);
+export const moveCardInputSchema = moveCardSchemaBase
+  .refine((value) => typeof value.cardId === 'string' || typeof value.cardName === 'string', {
+    message: 'cardId or cardName is required',
+    path: ['cardId'],
+  })
+  .refine((value) => typeof value.toListId === 'string' || typeof value.toList === 'string', {
+    message: 'toListId or toList is required',
+    path: ['toListId'],
+  });
 
 export const moveCardOutputSchema = zod.object({
   id: zod.string(),
@@ -41,11 +47,11 @@ export const createMoveCardTool = (useCase: MoveCardUseCase): MoveCardToolHandle
     name: 'trello_move_card',
     title: 'Mover tarjeta en Trello',
     description:
-      'Mueve una tarjeta a otra lista usando cardId o resolviendo por nombre con la misma semantica de busqueda.',
+      'Mueve una tarjeta usando toListId (recomendado) o toList por nombre; con nombre crea la lista si no existe.',
     inputSchema: moveCardSchemaBase.shape,
     outputSchema: moveCardOutputSchema.shape,
     execute: async (arguments_: unknown): Promise<CallToolResult> => {
-      const input = moveCardSchemaBase.parse(arguments_);
+      const input = moveCardInputSchema.parse(arguments_);
       const result = await useCase.execute(input);
 
       if (isErr(result)) {

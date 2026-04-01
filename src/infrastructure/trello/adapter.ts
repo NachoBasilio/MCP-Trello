@@ -141,8 +141,13 @@ export const createTrelloSearchCardsAdapter = (
       return resolveBoardPrecedence(config, input, boardsResult.value);
     },
 
-    listBoardLists: async (boardId: string): Promise<Result<List[], DomainError>> => {
-      return fetchBoardLists(config, boardId, fetchWithRetry);
+    listBoardLists: async (
+      boardId: string,
+      options?: {
+        includeClosed?: boolean;
+      }
+    ): Promise<Result<List[], DomainError>> => {
+      return fetchBoardLists(config, boardId, options, fetchWithRetry);
     },
 
     createList: async (boardId: string, name: string): Promise<Result<List, DomainError>> => {
