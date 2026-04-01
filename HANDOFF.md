@@ -70,3 +70,18 @@
 El servidor MCP expone 8 tools y 3 resources, con board resolution completa y backoff ante 429. Todos los tests actuales (152) pasan. Todo el Layer 5 según el plan SDD está cubierto y la funcionalidad está lista para usar.
 
 Este archivo existe para no perder contexto si se corta la sesión o se apaga la máquina.
+
+## Actualizacion 2026-04-01
+
+- Se crearon dos ramas nuevas desde `dev` para el nuevo lote:
+  - `feat/trello-list-columns`
+  - `feat/trello-label-color`
+- Se inicio `feat/trello-list-columns` con:
+  - nueva tool `trello_list_columns` para listar columnas/listas con ID
+  - soporte de `toListId` en `trello_move_card` para mover sin crear listas por error tipografico
+  - wiring actualizado en bootstrap/handlers/registry (9 tools)
+- Se inicio `feat/trello-label-color` con:
+  - nueva tool `trello_change_label_color` para cambiar color por `labelId` o `labelName`
+  - soporte en application + adapter para `updateLabelColor`
+  - validacion de colores permitidos por Trello en el contrato de entrada
+- El seguimiento de pendientes de este lote quedo en `TODO.md`.

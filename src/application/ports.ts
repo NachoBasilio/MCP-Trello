@@ -55,6 +55,7 @@ export interface TrelloGateway extends TrelloBoardPort {
   listBoardLabels(boardId: string): Promise<Result<Label[], DomainError>>;
   addLabel(cardId: string, labelId: string): Promise<Result<void, DomainError>>;
   createLabel(boardId: string, name: string, color: string): Promise<Result<Label, DomainError>>;
+  updateLabelColor(labelId: string, color: string): Promise<Result<Label, DomainError>>;
 
   listCardComments(cardId: string): Promise<Result<Comment[], DomainError>>;
 }

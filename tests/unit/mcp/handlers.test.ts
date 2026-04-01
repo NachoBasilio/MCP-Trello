@@ -24,6 +24,7 @@ const bootstrapStatusFixture: BootstrapDiagnosticSnapshot = {
     'trello_move_card',
     'trello_delete_card',
     'trello_add_labels',
+    'trello_change_label_color',
   ],
   trelloRuntimeAvailable: true,
   trelloWriteRuntimeAvailable: true,
@@ -47,6 +48,7 @@ const baseDependencies: ApplicationDependencies = {
   moveCard: mockUseCase(),
   deleteCard: mockUseCase(),
   addLabels: mockUseCase(ok([])),
+  changeLabelColor: mockUseCase(ok({ id: 'label-1', name: 'bug', color: 'red' })),
   boardSummary: mockUseCase(ok({ boardId: 'board-1', listCount: 3, cardCount: 10, lists: [] })),
   boardOverdue: mockUseCase(ok({ boardId: 'board-1', overdueCards: [], overdueCount: 0 })),
   boardByLabel: mockUseCase(ok({ boardId: 'board-1', labelName: 'bug', matchingCards: [], cardCount: 0 })),
@@ -73,6 +75,7 @@ describe('Handlers MCP del servidor', () => {
       'moveCardTool',
       'deleteCardTool',
       'addLabelsTool',
+      'changeLabelColorTool',
       'boardSummaryResource',
       'boardOverdueResource',
       'boardByLabelResource',
@@ -86,6 +89,7 @@ describe('Handlers MCP del servidor', () => {
     expect(handlers.moveCardTool.name).toBe('trello_move_card');
     expect(handlers.deleteCardTool.name).toBe('trello_delete_card');
     expect(handlers.addLabelsTool.name).toBe('trello_add_labels');
+    expect(handlers.changeLabelColorTool.name).toBe('trello_change_label_color');
     expect(handlers.boardSummaryResource.name).toBe('board-summary');
     expect(handlers.boardOverdueResource.name).toBe('board-overdue');
     expect(handlers.boardByLabelResource.name).toBe('board-by-label');

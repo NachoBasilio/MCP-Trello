@@ -1,6 +1,7 @@
 import type { Config } from '../config/index.js';
 import type { AddCommentUseCase } from './add-comment.js';
 import type { AddLabelsUseCase } from './add-labels.js';
+import type { ChangeLabelColorUseCase } from './change-label-color.js';
 import type { BoardByLabelUseCase } from './board-by-label.js';
 import type { BoardOverdueUseCase } from './board-overdue.js';
 import type { BoardSummaryUseCase } from './board-summary.js';
@@ -24,7 +25,8 @@ export interface BootstrapDiagnosticSnapshot {
     'trello_create_card',
     'trello_move_card',
     'trello_delete_card',
-    'trello_add_labels'
+    'trello_add_labels',
+    'trello_change_label_color'
   ];
   trelloRuntimeAvailable: true;
   trelloWriteRuntimeAvailable: true;
@@ -41,6 +43,7 @@ export interface ApplicationRuntime {
   moveCard: MoveCardUseCase;
   deleteCard: DeleteCardUseCase;
   addLabels: AddLabelsUseCase;
+  changeLabelColor: ChangeLabelColorUseCase;
   boardSummary: BoardSummaryUseCase;
   boardOverdue: BoardOverdueUseCase;
   boardByLabel: BoardByLabelUseCase;
@@ -56,6 +59,7 @@ export interface ApplicationDependencies {
   moveCard: MoveCardUseCase;
   deleteCard: DeleteCardUseCase;
   addLabels: AddLabelsUseCase;
+  changeLabelColor: ChangeLabelColorUseCase;
   boardSummary: BoardSummaryUseCase;
   boardOverdue: BoardOverdueUseCase;
   boardByLabel: BoardByLabelUseCase;
@@ -76,6 +80,7 @@ export const createApplicationDependencies = (config: Config, runtime: Applicati
     moveCard: runtime.moveCard,
     deleteCard: runtime.deleteCard,
     addLabels: runtime.addLabels,
+    changeLabelColor: runtime.changeLabelColor,
     boardSummary: runtime.boardSummary,
     boardOverdue: runtime.boardOverdue,
     boardByLabel: runtime.boardByLabel,
@@ -93,6 +98,7 @@ export const createApplicationDependencies = (config: Config, runtime: Applicati
         'trello_move_card',
         'trello_delete_card',
         'trello_add_labels',
+        'trello_change_label_color',
       ],
       trelloRuntimeAvailable: true,
       trelloWriteRuntimeAvailable: true,
