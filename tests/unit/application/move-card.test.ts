@@ -88,6 +88,31 @@ describe('Caso de uso MoveCard', () => {
   });
 
   /**
+   * Verifica que falla rapido cuando no llega un destino valido para mover.
+   */
+  it('debe devolver error de validacion cuando faltan toListId y toList', async () => {
+    const resolveBoard = vi.fn(async () => ok('board-1'));
+    const listBoardLists = vi.fn(async () => ok(mockLists));
+    const createListFn = vi.fn();
+    const updateCard = vi.fn();
+    const gateway = { resolveBoard, listBoardLists, createList: createListFn, updateCard };
+
+    const useCase = createMoveCardUseCase(gateway as any);
+    const result = await useCase.execute({ cardId: 'card-1', toList: '   ' });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      throw new Error('Se esperaba error de validacion');
+    }
+
+    expect(result.error.code).toBe(ErrorCode.Validation);
+    expect(resolveBoard).not.toHaveBeenCalled();
+    expect(listBoardLists).not.toHaveBeenCalled();
+    expect(createListFn).not.toHaveBeenCalled();
+    expect(updateCard).not.toHaveBeenCalled();
+  });
+
+  /**
    * Verifica que resuelve por nombre cuando no se provee cardId.
    */
   it('debe mover la tarjeta por nombre exacto', async () => {
