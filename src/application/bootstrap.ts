@@ -7,6 +7,7 @@ import type { BoardSummaryUseCase } from './board-summary.js';
 import type { CreateCardUseCase } from './create-card.js';
 import type { DeleteCardUseCase } from './delete-card.js';
 import type { ListBoardsUseCase } from './list-boards.js';
+import type { ListColumnsUseCase } from './list-columns.js';
 import type { MoveCardUseCase } from './move-card.js';
 import type { SearchCardsUseCase } from './search-cards.js';
 
@@ -19,6 +20,7 @@ export interface BootstrapDiagnosticSnapshot {
     'trello_search_cards',
     'trello_add_comment',
     'trello_list_boards',
+    'trello_list_columns',
     'trello_create_card',
     'trello_move_card',
     'trello_delete_card',
@@ -34,6 +36,7 @@ export interface ApplicationRuntime {
   searchCards: SearchCardsUseCase;
   addComment: AddCommentUseCase;
   listBoards: ListBoardsUseCase;
+  listColumns: ListColumnsUseCase;
   createCard: CreateCardUseCase;
   moveCard: MoveCardUseCase;
   deleteCard: DeleteCardUseCase;
@@ -48,6 +51,7 @@ export interface ApplicationDependencies {
   searchCards: SearchCardsUseCase;
   addComment: AddCommentUseCase;
   listBoards: ListBoardsUseCase;
+  listColumns: ListColumnsUseCase;
   createCard: CreateCardUseCase;
   moveCard: MoveCardUseCase;
   deleteCard: DeleteCardUseCase;
@@ -67,6 +71,7 @@ export const createApplicationDependencies = (config: Config, runtime: Applicati
     searchCards: runtime.searchCards,
     addComment: runtime.addComment,
     listBoards: runtime.listBoards,
+    listColumns: runtime.listColumns,
     createCard: runtime.createCard,
     moveCard: runtime.moveCard,
     deleteCard: runtime.deleteCard,
@@ -83,6 +88,7 @@ export const createApplicationDependencies = (config: Config, runtime: Applicati
         'trello_search_cards',
         'trello_add_comment',
         'trello_list_boards',
+        'trello_list_columns',
         'trello_create_card',
         'trello_move_card',
         'trello_delete_card',

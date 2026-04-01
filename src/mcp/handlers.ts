@@ -6,6 +6,7 @@ import { createAddCommentTool, type AddCommentToolHandler } from './tools/add-co
 import { createAddLabelsTool, type AddLabelsToolHandler } from './tools/add-labels.js';
 import { createCreateCardTool, type CreateCardToolHandler } from './tools/create-card.js';
 import { createListBoardsTool, type ListBoardsToolHandler } from './tools/list-boards.js';
+import { createListColumnsTool, type ListColumnsToolHandler } from './tools/list-columns.js';
 import { createMoveCardTool, type MoveCardToolHandler } from './tools/move-card.js';
 import { createDeleteCardTool, type DeleteCardToolHandler } from './tools/delete-card.js';
 import { createSearchCardsTool, type SearchCardsToolHandler } from './tools/search-cards.js';
@@ -20,6 +21,7 @@ const allToolNames = [
   'trello_search_cards',
   'trello_add_comment',
   'trello_list_boards',
+  'trello_list_columns',
   'trello_create_card',
   'trello_move_card',
   'trello_delete_card',
@@ -39,6 +41,7 @@ const bootstrapStatusOutputSchema = {
     zod.literal(allToolNames[5]),
     zod.literal(allToolNames[6]),
     zod.literal(allToolNames[7]),
+    zod.literal(allToolNames[8]),
   ]),
   trelloRuntimeAvailable: zod.literal(true),
   trelloWriteRuntimeAvailable: zod.literal(true),
@@ -59,6 +62,7 @@ export interface BootstrapHandlers {
   searchCardsTool: SearchCardsToolHandler;
   addCommentTool: AddCommentToolHandler;
   listBoardsTool: ListBoardsToolHandler;
+  listColumnsTool: ListColumnsToolHandler;
   createCardTool: CreateCardToolHandler;
   moveCardTool: MoveCardToolHandler;
   deleteCardTool: DeleteCardToolHandler;
@@ -108,6 +112,7 @@ export const createBootstrapHandlers = (dependencies: ApplicationDependencies): 
     searchCardsTool: createSearchCardsTool(dependencies.searchCards),
     addCommentTool: createAddCommentTool(dependencies.addComment),
     listBoardsTool: createListBoardsTool(dependencies.listBoards),
+    listColumnsTool: createListColumnsTool(dependencies.listColumns),
     createCardTool: createCreateCardTool(dependencies.createCard),
     moveCardTool: createMoveCardTool(dependencies.moveCard),
     deleteCardTool: createDeleteCardTool(dependencies.deleteCard),

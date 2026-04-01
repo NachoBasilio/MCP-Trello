@@ -19,6 +19,7 @@ const bootstrapStatusFixture: BootstrapDiagnosticSnapshot = {
     'trello_search_cards',
     'trello_add_comment',
     'trello_list_boards',
+    'trello_list_columns',
     'trello_create_card',
     'trello_move_card',
     'trello_delete_card',
@@ -41,6 +42,7 @@ const baseDependencies: ApplicationDependencies = {
     ok({ id: 'comment-1', text: 'Assigned to Nacho', creator: 'Ignadev', date: '2026-03-29T10:00:00.000Z' })
   ),
   listBoards: mockUseCase(ok([])),
+  listColumns: mockUseCase(ok({ boardId: 'board-1', columns: [] })),
   createCard: mockUseCase(),
   moveCard: mockUseCase(),
   deleteCard: mockUseCase(),
@@ -66,6 +68,7 @@ describe('Handlers MCP del servidor', () => {
       'searchCardsTool',
       'addCommentTool',
       'listBoardsTool',
+      'listColumnsTool',
       'createCardTool',
       'moveCardTool',
       'deleteCardTool',
@@ -78,6 +81,7 @@ describe('Handlers MCP del servidor', () => {
     expect(handlers.searchCardsTool.name).toBe('trello_search_cards');
     expect(handlers.addCommentTool.name).toBe('trello_add_comment');
     expect(handlers.listBoardsTool.name).toBe('trello_list_boards');
+    expect(handlers.listColumnsTool.name).toBe('trello_list_columns');
     expect(handlers.createCardTool.name).toBe('trello_create_card');
     expect(handlers.moveCardTool.name).toBe('trello_move_card');
     expect(handlers.deleteCardTool.name).toBe('trello_delete_card');

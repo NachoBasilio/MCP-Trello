@@ -26,7 +26,12 @@ export interface TrelloGateway extends TrelloBoardPort {
   listCards(boardId: string): Promise<Result<CardSummary[], DomainError>>;
   addComment(cardId: string, text: string): Promise<Result<Comment, DomainError>>;
 
-  listBoardLists(boardId: string): Promise<Result<List[], DomainError>>;
+  listBoardLists(
+    boardId: string,
+    options?: {
+      includeClosed?: boolean;
+    }
+  ): Promise<Result<List[], DomainError>>;
   createList(boardId: string, name: string): Promise<Result<List, DomainError>>;
 
   createCard(input: {

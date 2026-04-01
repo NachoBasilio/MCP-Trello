@@ -1,6 +1,7 @@
 import {
   createCardAmbiguousError,
   createCardNotFoundError,
+  createValidationError,
   type Card,
   type DomainError,
 } from '../domain/index.js';
@@ -12,7 +13,8 @@ import type { TrelloGateway } from './ports.js';
 export interface MoveCardInput {
   cardName?: string;
   cardId?: string;
-  toList: string;
+  toList?: string;
+  toListId?: string;
   boardId?: string;
   boardName?: string;
 }
@@ -71,6 +73,21 @@ export const createMoveCardUseCase = (gateway: TrelloGateway): MoveCardUseCase =
         targetCardId = matches[0].id;
       }
 
+      if (typeof input.toListId === 'string' && input.toListId.trim().length > 0) {
+        return gateway.updateCard(targetCardId, { idList: input.toListId.trim() });
+      }
+
+      const targetListName = input.toList?.trim() ?? '';
+      if (targetListName.length === 0) {
+        return {
+          ok: false,
+          error: createValidationError('toListId or toList is required', {
+            toListId: input.toListId,
+            toList: input.toList,
+          }),
+        };
+      }
+
       const boardIdResult = await gateway.resolveBoard({
         boardId: input.boardId,
         boardName: input.boardName,
@@ -87,11 +104,11 @@ export const createMoveCardUseCase = (gateway: TrelloGateway): MoveCardUseCase =
       }
 
       let targetList = listsResult.value.find(
-        (list) => list.name.toLowerCase() === input.toList.toLowerCase()
+        (list) => list.name.toLowerCase() === targetListName.toLowerCase()
       );
 
       if (!targetList) {
-        const createListResult = await gateway.createList(boardIdResult.value, input.toList);
+        const createListResult = await gateway.createList(boardIdResult.value, targetListName);
 
         if (isErr(createListResult)) {
           return createListResult;

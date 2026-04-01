@@ -20,7 +20,7 @@ export const bootstrapServerDefinition: BootstrapServerDefinition = {
       resources: {},
     },
     instructions:
-      'Servidor MCP para Trello. Expone 8 tools: bootstrap.status, trello_search_cards, trello_add_comment, trello_list_boards, trello_create_card, trello_move_card, trello_delete_card y trello_add_labels. Además expone 3 resources: board-summary, board-overdue y board-by-label.',
+      'Servidor MCP para Trello. Expone 9 tools: bootstrap.status, trello_search_cards, trello_add_comment, trello_list_boards, trello_list_columns, trello_create_card, trello_move_card, trello_delete_card y trello_add_labels. Además expone 3 resources: board-summary, board-overdue y board-by-label.',
   },
 };
 
@@ -81,6 +81,17 @@ export const registerBootstrapCapabilities = (server: McpServer, handlers: Boots
       outputSchema: handlers.createCardTool.outputSchema,
     },
     handlers.createCardTool.execute
+  );
+
+  server.registerTool(
+    handlers.listColumnsTool.name,
+    {
+      title: handlers.listColumnsTool.title,
+      description: handlers.listColumnsTool.description,
+      inputSchema: handlers.listColumnsTool.inputSchema,
+      outputSchema: handlers.listColumnsTool.outputSchema,
+    },
+    handlers.listColumnsTool.execute
   );
 
   server.registerTool(
