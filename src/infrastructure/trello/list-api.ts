@@ -15,12 +15,13 @@ const trelloListSchema = zod.object({
 });
 
 /**
- * Obtiene todas las listas abiertas de un board via `GET /1/boards/{id}/lists`.
+ * Obtiene listas de un board via `GET /1/boards/{id}/lists`.
  *
  * @param config - Configuracion tipada con credenciales Trello.
  * @param boardId - Identificador del board.
+ * @param options - Opciones de consulta; `includeClosed` habilita traer listas cerradas.
  * @param fetchImpl - Implementacion de fetch inyectable para pruebas.
- * @returns Lista de listas del board.
+ * @returns Lista de listas del board (abiertas por default, o todas cuando `includeClosed=true`).
  */
 export const fetchBoardLists = async (
   config: Config,

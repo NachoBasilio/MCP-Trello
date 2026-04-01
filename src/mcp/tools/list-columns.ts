@@ -54,7 +54,7 @@ export const createListColumnsTool = (useCase: ListColumnsUseCase): ListColumnsT
 
       const lines = output.columns.length
         ? output.columns.map((column) => `- ${column.name} (${column.id})`)
-        : ['No se encontraron columnas abiertas en el board.'];
+        : ['No se encontraron columnas en el board.'];
 
       return {
         content: [
