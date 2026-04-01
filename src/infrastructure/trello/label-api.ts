@@ -120,6 +120,40 @@ export const createBoardLabel = async (
   return ok(mapToLabel(rawLabel));
 };
 
+/**
+ * Actualiza el color de una label existente via `PUT /1/labels/{id}`.
+ *
+ * @param config - Configuracion tipada con credenciales Trello.
+ * @param labelId - Identificador de la label a actualizar.
+ * @param color - Nuevo color de la label.
+ * @param fetchImpl - Implementacion de fetch inyectable para pruebas.
+ */
+export const updateBoardLabelColor = async (
+  config: Config,
+  labelId: string,
+  color: string,
+  fetchImpl: typeof fetch = fetch
+): Promise<Result<Label, DomainError>> => {
+  const url = buildTrelloUrl(config, `/labels/${labelId}`, {
+    color,
+  });
+
+  const response = await fetchImpl(url, { method: 'PUT' });
+
+  if (!response.ok) {
+    const bodyText = await safeReadBody(response);
+    return err(
+      createTrelloApiError(`Failed to update label color (${response.status})`, {
+        status: response.status,
+        body: bodyText,
+      })
+    );
+  }
+
+  const rawLabel = trelloLabelSchema.parse(await response.json());
+  return ok(mapToLabel(rawLabel));
+};
+
 const safeReadBody = async (response: Response): Promise<string | undefined> => {
   try {
     return await response.text();

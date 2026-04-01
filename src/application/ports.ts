@@ -26,7 +26,12 @@ export interface TrelloGateway extends TrelloBoardPort {
   listCards(boardId: string): Promise<Result<CardSummary[], DomainError>>;
   addComment(cardId: string, text: string): Promise<Result<Comment, DomainError>>;
 
-  listBoardLists(boardId: string): Promise<Result<List[], DomainError>>;
+  listBoardLists(
+    boardId: string,
+    options?: {
+      includeClosed?: boolean;
+    }
+  ): Promise<Result<List[], DomainError>>;
   createList(boardId: string, name: string): Promise<Result<List, DomainError>>;
 
   createCard(input: {
@@ -50,6 +55,7 @@ export interface TrelloGateway extends TrelloBoardPort {
   listBoardLabels(boardId: string): Promise<Result<Label[], DomainError>>;
   addLabel(cardId: string, labelId: string): Promise<Result<void, DomainError>>;
   createLabel(boardId: string, name: string, color: string): Promise<Result<Label, DomainError>>;
+  updateLabelColor(labelId: string, color: string): Promise<Result<Label, DomainError>>;
 
   listCardComments(cardId: string): Promise<Result<Comment[], DomainError>>;
 }

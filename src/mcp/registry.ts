@@ -20,7 +20,7 @@ export const bootstrapServerDefinition: BootstrapServerDefinition = {
       resources: {},
     },
     instructions:
-      'Servidor MCP para Trello. Expone 8 tools: bootstrap.status, trello_search_cards, trello_add_comment, trello_list_boards, trello_create_card, trello_move_card, trello_delete_card y trello_add_labels. Además expone 3 resources: board-summary, board-overdue y board-by-label.',
+      'Servidor MCP para Trello. Expone 10 tools: bootstrap.status, trello_search_cards, trello_add_comment, trello_list_boards, trello_list_columns, trello_create_card, trello_move_card, trello_delete_card, trello_add_labels y trello_change_label_color. Además expone 3 resources: board-summary, board-overdue y board-by-label.',
   },
 };
 
@@ -84,6 +84,17 @@ export const registerBootstrapCapabilities = (server: McpServer, handlers: Boots
   );
 
   server.registerTool(
+    handlers.listColumnsTool.name,
+    {
+      title: handlers.listColumnsTool.title,
+      description: handlers.listColumnsTool.description,
+      inputSchema: handlers.listColumnsTool.inputSchema,
+      outputSchema: handlers.listColumnsTool.outputSchema,
+    },
+    handlers.listColumnsTool.execute
+  );
+
+  server.registerTool(
     handlers.moveCardTool.name,
     {
       title: handlers.moveCardTool.title,
@@ -114,6 +125,17 @@ export const registerBootstrapCapabilities = (server: McpServer, handlers: Boots
       outputSchema: handlers.addLabelsTool.outputSchema,
     },
     handlers.addLabelsTool.execute
+  );
+
+  server.registerTool(
+    handlers.changeLabelColorTool.name,
+    {
+      title: handlers.changeLabelColorTool.title,
+      description: handlers.changeLabelColorTool.description,
+      inputSchema: handlers.changeLabelColorTool.inputSchema,
+      outputSchema: handlers.changeLabelColorTool.outputSchema,
+    },
+    handlers.changeLabelColorTool.execute
   );
 
   server.registerResource(

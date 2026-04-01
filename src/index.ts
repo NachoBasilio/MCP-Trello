@@ -4,12 +4,14 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { createAddCommentUseCase } from './application/add-comment.js';
 import { createDeleteCardUseCase } from './application/delete-card.js';
 import { createAddLabelsUseCase } from './application/add-labels.js';
+import { createChangeLabelColorUseCase } from './application/change-label-color.js';
 import { createBoardByLabelUseCase } from './application/board-by-label.js';
 import { createBoardOverdueUseCase } from './application/board-overdue.js';
 import { createBoardSummaryUseCase } from './application/board-summary.js';
 import { createApplicationDependencies } from './application/bootstrap.js';
 import { createCreateCardUseCase } from './application/create-card.js';
 import { createListBoardsUseCase } from './application/list-boards.js';
+import { createListColumnsUseCase } from './application/list-columns.js';
 import { createMoveCardUseCase } from './application/move-card.js';
 import { createSearchCardsUseCase } from './application/search-cards.js';
 import { loadConfig } from './config/index.js';
@@ -42,10 +44,12 @@ const main = async (): Promise<void> => {
   const searchCards = createSearchCardsUseCase(trelloGateway);
   const addComment = createAddCommentUseCase(trelloGateway);
   const listBoards = createListBoardsUseCase(trelloGateway);
+  const listColumns = createListColumnsUseCase(trelloGateway);
   const createCard = createCreateCardUseCase(trelloGateway);
   const moveCard = createMoveCardUseCase(trelloGateway);
   const deleteCard = createDeleteCardUseCase(trelloGateway);
   const addLabels = createAddLabelsUseCase(trelloGateway);
+  const changeLabelColor = createChangeLabelColorUseCase(trelloGateway);
   const boardSummary = createBoardSummaryUseCase(trelloGateway);
   const boardOverdue = createBoardOverdueUseCase(trelloGateway);
   const boardByLabel = createBoardByLabelUseCase(trelloGateway);
@@ -53,10 +57,12 @@ const main = async (): Promise<void> => {
     searchCards,
     addComment,
     listBoards,
+    listColumns,
     createCard,
     moveCard,
     deleteCard,
     addLabels,
+    changeLabelColor,
     boardSummary,
     boardOverdue,
     boardByLabel,

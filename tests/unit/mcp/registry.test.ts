@@ -20,7 +20,7 @@ import { ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js';
  * Protege el wiring de metadata y registro MCP.
  */
 describe('Registry MCP del servidor', () => {
-  it('debe publicar metadata del servidor con 8 tools y 3 resources', () => {
+  it('debe publicar metadata del servidor con 10 tools y 3 resources', () => {
     expect(bootstrapServerDefinition.info).toEqual({
       name: 'server-mcp-trello',
       version: '0.1.0',
@@ -29,13 +29,15 @@ describe('Registry MCP del servidor', () => {
     expect(bootstrapServerDefinition.options.instructions).toContain('trello_move_card');
     expect(bootstrapServerDefinition.options.instructions).toContain('trello_delete_card');
     expect(bootstrapServerDefinition.options.instructions).toContain('trello_add_labels');
+    expect(bootstrapServerDefinition.options.instructions).toContain('trello_list_columns');
+    expect(bootstrapServerDefinition.options.instructions).toContain('trello_change_label_color');
     expect(bootstrapServerDefinition.options.instructions).toContain('board-summary');
     expect(bootstrapServerDefinition.options.instructions).toContain('board-overdue');
     expect(bootstrapServerDefinition.options.instructions).toContain('board-by-label');
     expect(bootstrapServerCapabilities).toEqual({ tools: {}, resources: {} });
   });
 
-  it('debe registrar las 8 tools y 3 resources sobre el servidor MCP', () => {
+  it('debe registrar las 10 tools y 3 resources sobre el servidor MCP', () => {
     const registerTool = vi.fn();
     const registerResource = vi.fn();
     const server = {
@@ -60,10 +62,12 @@ describe('Registry MCP del servidor', () => {
             zod.literal('trello_search_cards'),
             zod.literal('trello_add_comment'),
             zod.literal('trello_list_boards'),
+            zod.literal('trello_list_columns'),
             zod.literal('trello_create_card'),
             zod.literal('trello_move_card'),
             zod.literal('trello_delete_card'),
             zod.literal('trello_add_labels'),
+            zod.literal('trello_change_label_color'),
           ]),
           trelloRuntimeAvailable: zod.literal(true),
           trelloWriteRuntimeAvailable: zod.literal(true),
@@ -95,6 +99,14 @@ describe('Registry MCP del servidor', () => {
         outputSchema: trelloListBoardsOutputSchema.shape,
         execute,
       },
+      listColumnsTool: {
+        name: 'trello_list_columns',
+        title: 'Listar columnas',
+        description: 'Lista columnas.',
+        inputSchema: mockSchema,
+        outputSchema: mockSchema,
+        execute,
+      },
       createCardTool: {
         name: 'trello_create_card',
         title: 'Crear tarjeta',
@@ -123,6 +135,14 @@ describe('Registry MCP del servidor', () => {
         name: 'trello_add_labels',
         title: 'Agregar labels',
         description: 'Labels.',
+        inputSchema: mockSchema,
+        outputSchema: mockSchema,
+        execute,
+      },
+      changeLabelColorTool: {
+        name: 'trello_change_label_color',
+        title: 'Cambiar color de label',
+        description: 'Cambia color.',
         inputSchema: mockSchema,
         outputSchema: mockSchema,
         execute,
@@ -161,7 +181,7 @@ describe('Registry MCP del servidor', () => {
 
     registerBootstrapCapabilities(server, handlers);
 
-    expect(registerTool).toHaveBeenCalledTimes(8);
+    expect(registerTool).toHaveBeenCalledTimes(10);
     expect(registerResource).toHaveBeenCalledTimes(3);
   });
 });
