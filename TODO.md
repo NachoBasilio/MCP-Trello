@@ -10,7 +10,7 @@
 - [x] Crear use case para listar columnas de un board resolviendo `boardId`/`boardName`.
 - [x] Agregar tool MCP `trello_list_columns` con salida estructurada (`id`, `name`).
 - [x] Permitir `toListId` en `trello_move_card` para evitar crear listas por typo.
-- [x] Actualizar registry/bootstrap/handlers con metadata honesta (9 tools).
+- [x] Actualizar registry/bootstrap/handlers con metadata honesta (10 tools).
 - [ ] Cerrar docs finales y abrir PR a `dev`.
 
 ## Tareas del feature 2 (`feat/trello-label-color`)

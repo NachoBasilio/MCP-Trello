@@ -19,6 +19,20 @@ export const changeLabelColorInputSchema = changeLabelColorSchemaBase
   .refine((value) => typeof value.labelId === 'string' || typeof value.labelName === 'string', {
     message: 'labelId or labelName is required',
     path: ['labelId'],
+  })
+  .refine((value) => {
+    if (typeof value.labelId === 'string') {
+      return true;
+    }
+
+    if (typeof value.labelName === 'string') {
+      return typeof value.boardId === 'string' || typeof value.boardName === 'string';
+    }
+
+    return true;
+  }, {
+    message: 'boardId or boardName is required when using labelName without labelId',
+    path: ['boardId'],
   });
 
 export const changeLabelColorOutputSchema = zod.object({

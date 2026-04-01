@@ -79,7 +79,7 @@ Este archivo existe para no perder contexto si se corta la sesión o se apaga la
 - Se inicio `feat/trello-list-columns` con:
   - nueva tool `trello_list_columns` para listar columnas/listas con ID
   - soporte de `toListId` en `trello_move_card` para mover sin crear listas por error tipografico
-  - wiring actualizado en bootstrap/handlers/registry (9 tools)
+  - wiring actualizado en bootstrap/handlers/registry (10 tools)
 - Se inicio `feat/trello-label-color` con:
   - nueva tool `trello_change_label_color` para cambiar color por `labelId` o `labelName`
   - soporte en application + adapter para `updateLabelColor`

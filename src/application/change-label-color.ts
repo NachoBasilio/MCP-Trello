@@ -1,11 +1,11 @@
 import {
   createAmbiguousError,
   createNotFoundError,
+  createValidationError,
   type DomainError,
   type Label,
   TRELLO_LABEL_COLORS,
 } from '../domain/index.js';
-import { createValidationError } from '../domain/index.js';
 import { isErr, type Result } from '../shared/index.js';
 
 import type { TrelloGateway } from './ports.js';
