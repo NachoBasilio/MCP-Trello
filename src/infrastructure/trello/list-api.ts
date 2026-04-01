@@ -25,11 +25,15 @@ const trelloListSchema = zod.object({
 export const fetchBoardLists = async (
   config: Config,
   boardId: string,
+  options: {
+    includeClosed?: boolean;
+  } = {},
   fetchImpl: typeof fetch = fetch
 ): Promise<Result<List[], DomainError>> => {
+  const filter = options.includeClosed ? 'all' : 'open';
   const url = buildTrelloUrl(config, `/boards/${boardId}/lists`, {
     fields: 'id,name,idBoard',
-    filter: 'open',
+    filter,
   });
 
   const response = await fetchImpl(url);

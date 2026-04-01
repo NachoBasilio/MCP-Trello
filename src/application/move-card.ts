@@ -12,7 +12,8 @@ import type { TrelloGateway } from './ports.js';
 export interface MoveCardInput {
   cardName?: string;
   cardId?: string;
-  toList: string;
+  toList?: string;
+  toListId?: string;
   boardId?: string;
   boardName?: string;
 }
@@ -71,6 +72,10 @@ export const createMoveCardUseCase = (gateway: TrelloGateway): MoveCardUseCase =
         targetCardId = matches[0].id;
       }
 
+      if (typeof input.toListId === 'string' && input.toListId.trim().length > 0) {
+        return gateway.updateCard(targetCardId, { idList: input.toListId.trim() });
+      }
+
       const boardIdResult = await gateway.resolveBoard({
         boardId: input.boardId,
         boardName: input.boardName,
@@ -80,6 +85,7 @@ export const createMoveCardUseCase = (gateway: TrelloGateway): MoveCardUseCase =
         return boardIdResult;
       }
 
+      const targetListName = input.toList?.trim() ?? '';
       const listsResult = await gateway.listBoardLists(boardIdResult.value);
 
       if (isErr(listsResult)) {
@@ -87,11 +93,11 @@ export const createMoveCardUseCase = (gateway: TrelloGateway): MoveCardUseCase =
       }
 
       let targetList = listsResult.value.find(
-        (list) => list.name.toLowerCase() === input.toList.toLowerCase()
+        (list) => list.name.toLowerCase() === targetListName.toLowerCase()
       );
 
       if (!targetList) {
-        const createListResult = await gateway.createList(boardIdResult.value, input.toList);
+        const createListResult = await gateway.createList(boardIdResult.value, targetListName);
 
         if (isErr(createListResult)) {
           return createListResult;
