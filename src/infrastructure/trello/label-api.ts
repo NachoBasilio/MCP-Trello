@@ -128,7 +128,7 @@ export const createBoardLabel = async (
  * @param color - Nuevo color de la label.
  * @param fetchImpl - Implementacion de fetch inyectable para pruebas.
  */
-export const updateBoardLabelColor = async (
+export const updateLabelColor = async (
   config: Config,
   labelId: string,
   color: string,

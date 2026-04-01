@@ -72,4 +72,59 @@ describe('Caso de uso ChangeLabelColor', () => {
     expect(result.error.code).toBe(ErrorCode.Validation);
     expect(updateLabelColor).not.toHaveBeenCalled();
   });
+
+  /**
+   * Verifica que al buscar por nombre devuelva NOT_FOUND cuando no hay coincidencias.
+   */
+  it('debe devolver NOT_FOUND si labelName no existe en el board', async () => {
+    const updateLabelColor = vi.fn();
+    const resolveBoard = vi.fn(async () => ok('board-1'));
+    const listBoardLabels = vi.fn(async () => ok([{ id: 'label-1', name: 'bug', color: 'yellow' }]));
+    const gateway = { updateLabelColor, resolveBoard, listBoardLabels };
+
+    const useCase = createChangeLabelColorUseCase(gateway as any);
+    const result = await useCase.execute({
+      labelName: 'Backend',
+      boardId: 'board-1',
+      color: 'green',
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      throw new Error('Se esperaba error de no encontrado');
+    }
+
+    expect(result.error.code).toBe(ErrorCode.NotFound);
+    expect(updateLabelColor).not.toHaveBeenCalled();
+  });
+
+  /**
+   * Verifica que al buscar por nombre devuelva AMBIGUOUS cuando hay multiples coincidencias.
+   */
+  it('debe devolver AMBIGUOUS si labelName coincide con multiples labels', async () => {
+    const updateLabelColor = vi.fn();
+    const resolveBoard = vi.fn(async () => ok('board-1'));
+    const listBoardLabels = vi.fn(async () =>
+      ok([
+        { id: 'label-1', name: 'Backend', color: 'yellow' },
+        { id: 'label-2', name: 'backend', color: 'blue' },
+      ])
+    );
+    const gateway = { updateLabelColor, resolveBoard, listBoardLabels };
+
+    const useCase = createChangeLabelColorUseCase(gateway as any);
+    const result = await useCase.execute({
+      labelName: 'backend',
+      boardId: 'board-1',
+      color: 'green',
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      throw new Error('Se esperaba error ambiguo');
+    }
+
+    expect(result.error.code).toBe(ErrorCode.Ambiguous);
+    expect(updateLabelColor).not.toHaveBeenCalled();
+  });
 });

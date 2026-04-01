@@ -22,7 +22,7 @@ import type { TrelloGateway } from '../../application/ports.js';
 import { fetchMemberBoards } from './board-api.js';
 import { fetchBoardCards, createTrelloCard, updateTrelloCard, deleteTrelloCard } from './card-api.js';
 import { fetchBoardLists, createBoardList } from './list-api.js';
-import { fetchBoardLabels, addLabelToCard, createBoardLabel, updateBoardLabelColor } from './label-api.js';
+import { fetchBoardLabels, addLabelToCard, createBoardLabel, updateLabelColor } from './label-api.js';
 import { postCardComment, fetchCardComments } from './comment-api.js';
 import { createFetchWithRetry } from './retry.js';
 
@@ -194,7 +194,7 @@ export const createTrelloSearchCardsAdapter = (
     },
 
     updateLabelColor: async (labelId: string, color: string): Promise<Result<Label, DomainError>> => {
-      return updateBoardLabelColor(config, labelId, color, fetchWithRetry);
+      return updateLabelColor(config, labelId, color, fetchWithRetry);
     },
 
     listCardComments: async (cardId: string): Promise<Result<Comment[], DomainError>> => {
