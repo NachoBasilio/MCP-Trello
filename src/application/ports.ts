@@ -18,10 +18,26 @@ export interface TrelloBoardPort {
   resolveBoard(input: { boardId?: string; boardName?: string }): Promise<Result<string, DomainError>>;
 }
 
+export interface TrelloLabelPort extends TrelloBoardPort {
+  listBoardLabels(boardId: string): Promise<Result<Label[], DomainError>>;
+  listLabelCards(input: {
+    boardId: string;
+    labelId: string;
+    limit: number;
+  }): Promise<Result<CardSummary[], DomainError>>;
+  updateLabel(
+    labelId: string,
+    input: {
+      name?: string;
+      color?: string;
+    }
+  ): Promise<Result<Label, DomainError>>;
+}
+
 /**
  * Puerto completo de Trello para operaciones CRUD y consultas de board.
  */
-export interface TrelloGateway extends TrelloBoardPort {
+export interface TrelloGateway extends TrelloLabelPort {
   resolveBoardId(boardId?: string): Promise<Result<string, DomainError>>;
   listCards(boardId: string): Promise<Result<CardSummary[], DomainError>>;
   addComment(cardId: string, text: string): Promise<Result<Comment, DomainError>>;
@@ -52,7 +68,6 @@ export interface TrelloGateway extends TrelloBoardPort {
 
   deleteCard(cardId: string): Promise<Result<void, DomainError>>;
 
-  listBoardLabels(boardId: string): Promise<Result<Label[], DomainError>>;
   addLabel(cardId: string, labelId: string): Promise<Result<void, DomainError>>;
   createLabel(boardId: string, name: string, color: string): Promise<Result<Label, DomainError>>;
   updateLabelColor(labelId: string, color: string): Promise<Result<Label, DomainError>>;

@@ -1,0 +1,26 @@
+{
+  "lists": [
+    { "id": "list-1", "name": "Backlog" },
+    { "id": "list-2", "name": "Done" }
+  ],
+  "cards": [
+    {
+      "id": "card-1",
+      "name": "Fix login bug",
+      "idList": "list-1",
+      "idBoard": "board-1",
+      "closed": false,
+      "shortUrl": "https://trello.com/c/card-1",
+      "due": null
+    },
+    {
+      "id": "card-2",
+      "name": "Write docs",
+      "idList": "list-2",
+      "idBoard": "board-1",
+      "closed": false,
+      "shortUrl": "https://trello.com/c/card-2",
+      "due": null
+    }
+  ]
+}

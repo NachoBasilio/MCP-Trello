@@ -17,13 +17,16 @@ export const createBoardByLabelResource = (useCase: BoardByLabelUseCase) => {
     template: boardByLabelTemplate,
     metadata: {
       title: 'Tarjetas por Label del Board',
-      description: 'Filtra las tarjetas de un board por un label específico.',
+    description: 'Filtra las tarjetas de un board por un label específico.',
       mimeType: 'application/json',
     },
     read: async (uri: URL, variables: Record<string, string | string[]>): Promise<ReadResourceResult> => {
-      const boardId = variables.boardId as string;
+      const boardId = typeof variables.boardId === 'string' ? variables.boardId : undefined;
       const labelName = variables.labelName as string;
-      const result = await useCase.execute({ boardId, labelName });
+      const boardName = extractBoardName(uri);
+      const limitParam = uri.searchParams.get('limit');
+      const limit = typeof limitParam === 'string' ? Number.parseInt(limitParam, 10) : undefined;
+      const result = await useCase.execute({ boardId, boardName, labelName, limit });
 
       if (isErr(result)) {
         throw result.error;
@@ -40,4 +43,14 @@ export const createBoardByLabelResource = (useCase: BoardByLabelUseCase) => {
       };
     },
   };
+};
+
+const extractBoardName = (uri: URL): string | undefined => {
+  const boardNameParam = uri.searchParams.get('boardName');
+
+  if (typeof boardNameParam === 'string' && boardNameParam.trim().length > 0) {
+    return boardNameParam;
+  }
+
+  return undefined;
 };

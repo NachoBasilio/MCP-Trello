@@ -14,6 +14,14 @@ import { createListColumnsTool, type ListColumnsToolHandler } from './tools/list
 import { createMoveCardTool, type MoveCardToolHandler } from './tools/move-card.js';
 import { createDeleteCardTool, type DeleteCardToolHandler } from './tools/delete-card.js';
 import { createSearchCardsTool, type SearchCardsToolHandler } from './tools/search-cards.js';
+import { createListBoardLabelsTool, type ListBoardLabelsToolHandler } from './tools/trello_list_board_labels.js';
+import { createResolveLabelTool, type ResolveLabelToolHandler } from './tools/trello_resolve_label.js';
+import { createListLabelCardsTool, type ListLabelCardsToolHandler } from './tools/trello_list_label_cards.js';
+import {
+  createSearchCardsByLabelTool,
+  type SearchCardsByLabelToolHandler,
+} from './tools/trello_search_cards_by_label.js';
+import { createUpdateLabelTool, type UpdateLabelToolHandler } from './tools/trello_update_label.js';
 import {
   createBoardSummaryResource,
   createBoardOverdueResource,
@@ -31,6 +39,11 @@ const allToolNames = [
   'trello_delete_card',
   'trello_add_labels',
   'trello_change_label_color',
+  'trello_list_board_labels',
+  'trello_resolve_label',
+  'trello_list_label_cards',
+  'trello_search_cards_by_label',
+  'trello_update_label',
 ] as const;
 
 const bootstrapStatusOutputSchema = {
@@ -48,6 +61,11 @@ const bootstrapStatusOutputSchema = {
     zod.literal(allToolNames[7]),
     zod.literal(allToolNames[8]),
     zod.literal(allToolNames[9]),
+    zod.literal(allToolNames[10]),
+    zod.literal(allToolNames[11]),
+    zod.literal(allToolNames[12]),
+    zod.literal(allToolNames[13]),
+    zod.literal(allToolNames[14]),
   ]),
   trelloRuntimeAvailable: zod.literal(true),
   trelloWriteRuntimeAvailable: zod.literal(true),
@@ -74,6 +92,11 @@ export interface BootstrapHandlers {
   deleteCardTool: DeleteCardToolHandler;
   addLabelsTool: AddLabelsToolHandler;
   changeLabelColorTool: ChangeLabelColorToolHandler;
+  listBoardLabelsTool: ListBoardLabelsToolHandler;
+  resolveLabelTool: ResolveLabelToolHandler;
+  listLabelCardsTool: ListLabelCardsToolHandler;
+  searchCardsByLabelTool: SearchCardsByLabelToolHandler;
+  updateLabelTool: UpdateLabelToolHandler;
   boardSummaryResource: ReturnType<typeof createBoardSummaryResource>;
   boardOverdueResource: ReturnType<typeof createBoardOverdueResource>;
   boardByLabelResource: ReturnType<typeof createBoardByLabelResource>;
@@ -125,6 +148,11 @@ export const createBootstrapHandlers = (dependencies: ApplicationDependencies): 
     deleteCardTool: createDeleteCardTool(dependencies.deleteCard),
     addLabelsTool: createAddLabelsTool(dependencies.addLabels),
     changeLabelColorTool: createChangeLabelColorTool(dependencies.changeLabelColor),
+    listBoardLabelsTool: createListBoardLabelsTool(dependencies.listBoardLabels),
+    resolveLabelTool: createResolveLabelTool(dependencies.resolveLabel),
+    listLabelCardsTool: createListLabelCardsTool(dependencies.listLabelCards),
+    searchCardsByLabelTool: createSearchCardsByLabelTool(dependencies.searchCardsByLabel),
+    updateLabelTool: createUpdateLabelTool(dependencies.updateLabel),
     boardSummaryResource: createBoardSummaryResource(dependencies.boardSummary),
     boardOverdueResource: createBoardOverdueResource(dependencies.boardOverdue),
     boardByLabelResource: createBoardByLabelResource(dependencies.boardByLabel),

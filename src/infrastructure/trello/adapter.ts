@@ -22,7 +22,14 @@ import type { TrelloGateway } from '../../application/ports.js';
 import { fetchMemberBoards } from './board-api.js';
 import { fetchBoardCards, createTrelloCard, updateTrelloCard, deleteTrelloCard } from './card-api.js';
 import { fetchBoardLists, createBoardList } from './list-api.js';
-import { fetchBoardLabels, addLabelToCard, createBoardLabel, updateBoardLabelColor } from './label-api.js';
+import {
+  fetchBoardLabels,
+  addLabelToCard,
+  createBoardLabel,
+  updateBoardLabelColor,
+  fetchLabelCards,
+  updateBoardLabel,
+} from './label-api.js';
 import { postCardComment, fetchCardComments } from './comment-api.js';
 import { createFetchWithRetry } from './retry.js';
 
@@ -181,6 +188,14 @@ export const createTrelloSearchCardsAdapter = (
       return fetchBoardLabels(config, boardId, fetchWithRetry);
     },
 
+    listLabelCards: async (input: {
+      boardId: string;
+      labelId: string;
+      limit: number;
+    }): Promise<Result<CardSummary[], DomainError>> => {
+      return fetchLabelCards(config, input, fetchWithRetry);
+    },
+
     addLabel: async (cardId: string, labelId: string): Promise<Result<void, DomainError>> => {
       return addLabelToCard(config, cardId, labelId, fetchWithRetry);
     },
@@ -195,6 +210,23 @@ export const createTrelloSearchCardsAdapter = (
 
     updateLabelColor: async (labelId: string, color: string): Promise<Result<Label, DomainError>> => {
       return updateBoardLabelColor(config, labelId, color, fetchWithRetry);
+    },
+
+    updateLabel: async (
+      labelId: string,
+      input: {
+        name?: string;
+        color?: string;
+      }
+    ): Promise<Result<Label, DomainError>> => {
+      return updateBoardLabel(
+        config,
+        {
+          labelId,
+          ...input,
+        },
+        fetchWithRetry
+      );
     },
 
     listCardComments: async (cardId: string): Promise<Result<Comment[], DomainError>> => {
