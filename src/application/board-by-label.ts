@@ -1,81 +1,39 @@
-import type { CardSummary, DomainError } from '../domain/index.js';
-import { isErr, type Result } from '../shared/index.js';
+import type { DomainError } from '../domain/index.js';
+import { isErr, ok, type Result } from '../shared/index.js';
 
-import type { TrelloGateway } from './ports.js';
+import type { ListLabelCardsOutput, ListLabelCardsUseCase } from './list-label-cards.js';
 
 export interface BoardByLabelInput {
   boardId?: string;
   boardName?: string;
   labelName: string;
+  limit?: number;
 }
 
-export interface BoardByLabelOutput {
-  boardId: string;
-  labelName: string;
-  matchingCards: CardSummary[];
-  cardCount: number;
-}
+export type BoardByLabelOutput = ListLabelCardsOutput;
 
 export interface BoardByLabelUseCase {
   execute(input: BoardByLabelInput): Promise<Result<BoardByLabelOutput, DomainError>>;
 }
 
 /**
- * Filtra tarjetas del board por label.
+ * Reutiliza la logica de ListLabelCards para exponer recursos MCP por label.
  */
-export const createBoardByLabelUseCase = (gateway: TrelloGateway): BoardByLabelUseCase => {
+export const createBoardByLabelUseCase = (useCase: ListLabelCardsUseCase): BoardByLabelUseCase => {
   return {
     execute: async (input: BoardByLabelInput): Promise<Result<BoardByLabelOutput, DomainError>> => {
-      const boardIdResult = await gateway.resolveBoard({
+      const result = await useCase.execute({
         boardId: input.boardId,
         boardName: input.boardName,
+        labelName: input.labelName,
+        limit: input.limit,
       });
 
-      if (isErr(boardIdResult)) {
-        return boardIdResult;
+      if (isErr(result)) {
+        return result;
       }
 
-      const labelsResult = await gateway.listBoardLabels(boardIdResult.value);
-
-      if (isErr(labelsResult)) {
-        return labelsResult;
-      }
-
-      const targetLabel = labelsResult.value.find(
-        (label) => label.name.toLowerCase() === input.labelName.toLowerCase()
-      );
-
-      if (!targetLabel) {
-        return {
-          ok: true,
-          value: {
-            boardId: boardIdResult.value,
-            labelName: input.labelName,
-            matchingCards: [],
-            cardCount: 0,
-          },
-        };
-      }
-
-      const cardsResult = await gateway.listCards(boardIdResult.value);
-
-      if (isErr(cardsResult)) {
-        return cardsResult;
-      }
-
-      const matchingCards = cardsResult.value.filter((card) =>
-        card.listName !== undefined
-      );
-
-      return {
-        ok: true,
-        value: {
-          boardId: boardIdResult.value,
-          labelName: input.labelName,
-          matchingCards,
-          cardCount: matchingCards.length,
-        },
-      };
+      return ok(result.value);
     },
   };
 };

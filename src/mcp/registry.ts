@@ -20,7 +20,7 @@ export const bootstrapServerDefinition: BootstrapServerDefinition = {
       resources: {},
     },
     instructions:
-      'Servidor MCP para Trello. Expone 10 tools: bootstrap.status, trello_search_cards, trello_add_comment, trello_list_boards, trello_list_columns, trello_create_card, trello_move_card, trello_delete_card, trello_add_labels y trello_change_label_color. Además expone 3 resources: board-summary, board-overdue y board-by-label.',
+      'Servidor MCP para Trello. Expone 15 tools: bootstrap.status, trello_search_cards, trello_add_comment, trello_list_boards, trello_list_columns, trello_create_card, trello_move_card, trello_delete_card, trello_add_labels, trello_change_label_color, trello_list_board_labels, trello_resolve_label, trello_list_label_cards, trello_search_cards_by_label y trello_update_label. Además expone 3 resources: board-summary, board-overdue y board-by-label.',
   },
 };
 
@@ -136,6 +136,61 @@ export const registerBootstrapCapabilities = (server: McpServer, handlers: Boots
       outputSchema: handlers.changeLabelColorTool.outputSchema,
     },
     handlers.changeLabelColorTool.execute
+  );
+
+  server.registerTool(
+    handlers.listBoardLabelsTool.name,
+    {
+      title: handlers.listBoardLabelsTool.title,
+      description: handlers.listBoardLabelsTool.description,
+      inputSchema: handlers.listBoardLabelsTool.inputSchema,
+      outputSchema: handlers.listBoardLabelsTool.outputSchema,
+    },
+    handlers.listBoardLabelsTool.execute
+  );
+
+  server.registerTool(
+    handlers.resolveLabelTool.name,
+    {
+      title: handlers.resolveLabelTool.title,
+      description: handlers.resolveLabelTool.description,
+      inputSchema: handlers.resolveLabelTool.inputSchema,
+      outputSchema: handlers.resolveLabelTool.outputSchema,
+    },
+    handlers.resolveLabelTool.execute
+  );
+
+  server.registerTool(
+    handlers.listLabelCardsTool.name,
+    {
+      title: handlers.listLabelCardsTool.title,
+      description: handlers.listLabelCardsTool.description,
+      inputSchema: handlers.listLabelCardsTool.inputSchema,
+      outputSchema: handlers.listLabelCardsTool.outputSchema,
+    },
+    handlers.listLabelCardsTool.execute
+  );
+
+  server.registerTool(
+    handlers.searchCardsByLabelTool.name,
+    {
+      title: handlers.searchCardsByLabelTool.title,
+      description: handlers.searchCardsByLabelTool.description,
+      inputSchema: handlers.searchCardsByLabelTool.inputSchema,
+      outputSchema: handlers.searchCardsByLabelTool.outputSchema,
+    },
+    handlers.searchCardsByLabelTool.execute
+  );
+
+  server.registerTool(
+    handlers.updateLabelTool.name,
+    {
+      title: handlers.updateLabelTool.title,
+      description: handlers.updateLabelTool.description,
+      inputSchema: handlers.updateLabelTool.inputSchema,
+      outputSchema: handlers.updateLabelTool.outputSchema,
+    },
+    handlers.updateLabelTool.execute
   );
 
   server.registerResource(
