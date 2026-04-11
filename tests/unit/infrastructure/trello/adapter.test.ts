@@ -1,7 +1,17 @@
 import { describe, expect, it, vi } from 'vitest';
+import { readFileSync } from 'node:fs';
 
 import { ErrorCode } from '../../../../src/domain/index.js';
+import { ok } from '../../../../src/shared/index.js';
 import { createTrelloSearchCardsAdapter } from '../../../../src/infrastructure/trello/adapter.js';
+
+vi.mock('../../../../src/infrastructure/trello/retry.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../../../src/infrastructure/trello/retry.js')>();
+  return {
+    ...actual,
+    createFetchWithRetry: (impl: typeof fetch) => impl,
+  };
+});
 
 const baseConfig = {
   TRELLO_API_KEY: 'key-123',
@@ -186,4 +196,107 @@ describe('Adapter de busqueda de tarjetas en Trello', () => {
 
     expect(result).toEqual({ ok: true, value: 'board-1' });
   });
+
+  it('debe mapear listLabelCards incluyendo listName y respetar limit+1', async () => {
+    const fixture = loadLabelCardsFixture();
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify(fixture.lists), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify(fixture.cards), { status: 200 }));
+    const adapter = createTrelloSearchCardsAdapter(baseConfig, fetchMock as typeof fetch);
+
+    const result = await adapter.listLabelCards({ boardId: 'board-1', labelId: 'label-1', limit: 2 });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock.mock.calls[1]?.[0]).toContain('/labels/label-1/cards');
+    expect(result).toEqual(
+      ok([
+        {
+          id: 'card-1',
+          name: 'Fix login bug',
+          idList: 'list-1',
+          listName: 'Backlog',
+          boardId: 'board-1',
+          closed: false,
+          shortUrl: 'https://trello.com/c/card-1',
+          due: null,
+        },
+        {
+          id: 'card-2',
+          name: 'Write docs',
+          idList: 'list-2',
+          listName: 'Done',
+          boardId: 'board-1',
+          closed: false,
+          shortUrl: 'https://trello.com/c/card-2',
+          due: null,
+        },
+      ])
+    );
+  });
+
+  it('debe traducir 429 a RateLimited en listLabelCards', async () => {
+    vi.useFakeTimers();
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify([{ id: 'list-1', name: 'To Do' }]), { status: 200 }))
+      .mockImplementation(() =>
+        Promise.resolve(new Response('rate limit', { status: 429, headers: { 'retry-after': '60' } }))
+      );
+    const adapter = createTrelloSearchCardsAdapter(baseConfig, fetchMock as typeof fetch);
+
+    try {
+      const pendingResult = adapter.listLabelCards({ boardId: 'board-1', labelId: 'label-1', limit: 3 });
+      await vi.runAllTimersAsync();
+      const result = await pendingResult;
+
+      expect(result.ok).toBe(false);
+      if (result.ok) {
+        throw new Error('Se esperaba error');
+      }
+      expect(result.error.code).toBe(ErrorCode.RateLimited);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('debe actualizar labels combinando nombre y color', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            id: 'label-1',
+            name: 'Critical',
+            color: 'green',
+          }),
+          { status: 200 }
+        )
+      );
+    const adapter = createTrelloSearchCardsAdapter(baseConfig, fetchMock as typeof fetch);
+
+    const result = await adapter.updateLabel('label-1', { name: 'Critical', color: 'green' });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/labels/label-1'),
+      expect.objectContaining({ method: 'PUT' })
+    );
+    expect(result).toEqual(ok({ id: 'label-1', name: 'Critical', color: 'green' }));
+  });
 });
+
+const loadLabelCardsFixture = () => {
+  const fileUrl = new URL('../../../fixtures/trello/label-cards.json', import.meta.url);
+  return JSON.parse(readFileSync(fileUrl, 'utf-8')) as {
+    lists: Array<{ id: string; name: string }>;
+    cards: Array<{
+      id: string;
+      name: string;
+      idList: string;
+      idBoard: string;
+      closed: boolean;
+      shortUrl: string;
+      due: string | null;
+    }>;
+  };
+};

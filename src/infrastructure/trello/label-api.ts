@@ -1,17 +1,33 @@
 import { z as zod } from 'zod';
 
 import type { Config } from '../../config/index.js';
-import type { Label, DomainError } from '../../domain/index.js';
+import type { CardSummary, Label, DomainError } from '../../domain/index.js';
 import { createTrelloApiError } from '../../domain/index.js';
 import { err, ok, type Result } from '../../shared/index.js';
 
 import { buildTrelloUrl } from './url.js';
-import { mapToLabel } from './mappers.js';
+import { mapToCardSummary, mapToLabel } from './mappers.js';
+import { mapTrelloHttpError } from './http-errors.js';
 
 const trelloLabelSchema = zod.object({
   id: zod.string(),
   name: zod.string(),
   color: zod.string(),
+});
+
+const trelloLabelCardSchema = zod.object({
+  id: zod.string(),
+  name: zod.string(),
+  idList: zod.string(),
+  idBoard: zod.string(),
+  closed: zod.boolean(),
+  shortUrl: zod.string().url(),
+  due: zod.string().nullable().optional(),
+});
+
+const trelloBoardListSchema = zod.object({
+  id: zod.string(),
+  name: zod.string(),
 });
 
 /**
@@ -114,6 +130,88 @@ export const createBoardLabel = async (
         body: bodyText,
       })
     );
+  }
+
+  const rawLabel = trelloLabelSchema.parse(await response.json());
+  return ok(mapToLabel(rawLabel));
+};
+
+/**
+ * Actualiza el color de una label existente via `PUT /1/labels/{id}`.
+ *
+ * @param config - Configuracion tipada con credenciales Trello.
+ * @param labelId - Identificador de la label a actualizar.
+ * @param color - Nuevo color de la label.
+ * @param fetchImpl - Implementacion de fetch inyectable para pruebas.
+ */
+export const updateBoardLabelColor = async (
+  config: Config,
+  labelId: string,
+  color: string,
+  fetchImpl: typeof fetch = fetch
+): Promise<Result<Label, DomainError>> => {
+  return updateBoardLabel(
+    config,
+    {
+      labelId,
+      color,
+    },
+    fetchImpl
+  );
+};
+
+export const fetchLabelCards = async (
+  config: Config,
+  input: { boardId: string; labelId: string; limit: number },
+  fetchImpl: typeof fetch = fetch
+): Promise<Result<CardSummary[], DomainError>> => {
+  const listsResponse = await fetchImpl(
+    buildTrelloUrl(config, `/boards/${input.boardId}/lists`, { fields: 'name' })
+  );
+
+  if (!listsResponse.ok) {
+    return err(await mapTrelloHttpError(listsResponse));
+  }
+
+  const cardsResponse = await fetchImpl(
+    buildTrelloUrl(config, `/labels/${input.labelId}/cards`, {
+      fields: 'id,name,idList,idBoard,closed,shortUrl,due',
+      limit: String(input.limit),
+      filter: 'all',
+    })
+  );
+
+  if (!cardsResponse.ok) {
+    return err(await mapTrelloHttpError(cardsResponse));
+  }
+
+  const lists = zod.array(trelloBoardListSchema).parse(await listsResponse.json());
+  const cards = zod.array(trelloLabelCardSchema).parse(await cardsResponse.json());
+  const listNames = new Map<string, string>(lists.map((list) => [list.id, list.name]));
+
+  return ok(cards.map((card) => mapToCardSummary(card, listNames)));
+};
+
+export const updateBoardLabel = async (
+  config: Config,
+  input: { labelId: string; name?: string; color?: string },
+  fetchImpl: typeof fetch = fetch
+): Promise<Result<Label, DomainError>> => {
+  const queryParams: Record<string, string> = {};
+
+  if (typeof input.name === 'string') {
+    queryParams.name = input.name;
+  }
+
+  if (typeof input.color === 'string') {
+    queryParams.color = input.color;
+  }
+
+  const url = buildTrelloUrl(config, `/labels/${input.labelId}`, queryParams);
+  const response = await fetchImpl(url, { method: 'PUT' });
+
+  if (!response.ok) {
+    return err(await mapTrelloHttpError(response));
   }
 
   const rawLabel = trelloLabelSchema.parse(await response.json());

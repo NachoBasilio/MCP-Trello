@@ -4,15 +4,21 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { createAddCommentUseCase } from './application/add-comment.js';
 import { createDeleteCardUseCase } from './application/delete-card.js';
 import { createAddLabelsUseCase } from './application/add-labels.js';
+import { createChangeLabelColorUseCase } from './application/change-label-color.js';
 import { createBoardByLabelUseCase } from './application/board-by-label.js';
 import { createBoardOverdueUseCase } from './application/board-overdue.js';
 import { createBoardSummaryUseCase } from './application/board-summary.js';
 import { createApplicationDependencies } from './application/bootstrap.js';
 import { createCreateCardUseCase } from './application/create-card.js';
 import { createListBoardsUseCase } from './application/list-boards.js';
+import { createListBoardLabelsUseCase } from './application/list-board-labels.js';
+import { createListLabelCardsUseCase } from './application/list-label-cards.js';
 import { createListColumnsUseCase } from './application/list-columns.js';
 import { createMoveCardUseCase } from './application/move-card.js';
 import { createSearchCardsUseCase } from './application/search-cards.js';
+import { createSearchCardsByLabelUseCase } from './application/search-cards-by-label.js';
+import { createResolveLabelUseCase } from './application/resolve-label.js';
+import { createUpdateLabelUseCase } from './application/update-label.js';
 import { loadConfig } from './config/index.js';
 import { isDomainError } from './domain/index.js';
 import { createTrelloSearchCardsAdapter } from './infrastructure/trello/adapter.js';
@@ -48,9 +54,15 @@ const main = async (): Promise<void> => {
   const moveCard = createMoveCardUseCase(trelloGateway);
   const deleteCard = createDeleteCardUseCase(trelloGateway);
   const addLabels = createAddLabelsUseCase(trelloGateway);
+  const changeLabelColor = createChangeLabelColorUseCase(trelloGateway);
   const boardSummary = createBoardSummaryUseCase(trelloGateway);
   const boardOverdue = createBoardOverdueUseCase(trelloGateway);
-  const boardByLabel = createBoardByLabelUseCase(trelloGateway);
+  const listBoardLabels = createListBoardLabelsUseCase(trelloGateway);
+  const resolveLabel = createResolveLabelUseCase(trelloGateway);
+  const listLabelCards = createListLabelCardsUseCase(trelloGateway, resolveLabel);
+  const searchCardsByLabel = createSearchCardsByLabelUseCase(listLabelCards);
+  const updateLabel = createUpdateLabelUseCase(trelloGateway, resolveLabel);
+  const boardByLabel = createBoardByLabelUseCase(listLabelCards);
   const dependencies = createApplicationDependencies(config, {
     searchCards,
     addComment,
@@ -60,9 +72,15 @@ const main = async (): Promise<void> => {
     moveCard,
     deleteCard,
     addLabels,
+    changeLabelColor,
     boardSummary,
     boardOverdue,
     boardByLabel,
+    listBoardLabels,
+    resolveLabel,
+    listLabelCards,
+    searchCardsByLabel,
+    updateLabel,
   });
   const handlers = createBootstrapHandlers(dependencies);
   const server = new McpServer(bootstrapServerDefinition.info, bootstrapServerDefinition.options);

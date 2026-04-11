@@ -87,7 +87,6 @@ export const createMoveCardUseCase = (gateway: TrelloGateway): MoveCardUseCase =
           }),
         };
       }
-
       const boardIdResult = await gateway.resolveBoard({
         boardId: input.boardId,
         boardName: input.boardName,

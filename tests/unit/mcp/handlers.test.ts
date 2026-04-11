@@ -24,6 +24,12 @@ const bootstrapStatusFixture: BootstrapDiagnosticSnapshot = {
     'trello_move_card',
     'trello_delete_card',
     'trello_add_labels',
+    'trello_change_label_color',
+    'trello_list_board_labels',
+    'trello_resolve_label',
+    'trello_list_label_cards',
+    'trello_search_cards_by_label',
+    'trello_update_label',
   ],
   trelloRuntimeAvailable: true,
   trelloWriteRuntimeAvailable: true,
@@ -47,9 +53,44 @@ const baseDependencies: ApplicationDependencies = {
   moveCard: mockUseCase(),
   deleteCard: mockUseCase(),
   addLabels: mockUseCase(ok([])),
+  changeLabelColor: mockUseCase(ok({ id: 'label-1', name: 'bug', color: 'red' })),
   boardSummary: mockUseCase(ok({ boardId: 'board-1', listCount: 3, cardCount: 10, lists: [] })),
   boardOverdue: mockUseCase(ok({ boardId: 'board-1', overdueCards: [], overdueCount: 0 })),
-  boardByLabel: mockUseCase(ok({ boardId: 'board-1', labelName: 'bug', matchingCards: [], cardCount: 0 })),
+  boardByLabel: mockUseCase(
+    ok({
+      boardId: 'board-1',
+      label: { id: 'label-1', name: 'Bug', color: 'red' },
+      cards: [],
+      cardCount: 0,
+      truncated: false,
+    })
+  ),
+  listBoardLabels: mockUseCase(ok({
+    boardId: 'board-1',
+    labelCount: 1,
+    labels: [{ id: 'label-1', name: 'Bug', color: 'red' }],
+  })),
+  resolveLabel: mockUseCase(ok({ boardId: 'board-1', label: { id: 'label-1', name: 'Bug', color: 'red' } })),
+  listLabelCards: mockUseCase(
+    ok({
+      boardId: 'board-1',
+      label: { id: 'label-1', name: 'Bug', color: 'red' },
+      cards: [],
+      cardCount: 0,
+      truncated: false,
+    })
+  ),
+  searchCardsByLabel: mockUseCase(
+    ok({
+      boardId: 'board-1',
+      label: { id: 'label-1', name: 'Bug', color: 'red' },
+      cards: [],
+      cardCount: 0,
+      truncated: false,
+      query: 'bug',
+    })
+  ),
+  updateLabel: mockUseCase(ok({ boardId: 'board-1', label: { id: 'label-1', name: 'Bug', color: 'green' } })),
   getBootstrapStatus: vi.fn(() => bootstrapStatusFixture),
 };
 
@@ -73,6 +114,12 @@ describe('Handlers MCP del servidor', () => {
       'moveCardTool',
       'deleteCardTool',
       'addLabelsTool',
+      'changeLabelColorTool',
+      'listBoardLabelsTool',
+      'resolveLabelTool',
+      'listLabelCardsTool',
+      'searchCardsByLabelTool',
+      'updateLabelTool',
       'boardSummaryResource',
       'boardOverdueResource',
       'boardByLabelResource',
@@ -86,6 +133,12 @@ describe('Handlers MCP del servidor', () => {
     expect(handlers.moveCardTool.name).toBe('trello_move_card');
     expect(handlers.deleteCardTool.name).toBe('trello_delete_card');
     expect(handlers.addLabelsTool.name).toBe('trello_add_labels');
+    expect(handlers.changeLabelColorTool.name).toBe('trello_change_label_color');
+    expect(handlers.listBoardLabelsTool.name).toBe('trello_list_board_labels');
+    expect(handlers.resolveLabelTool.name).toBe('trello_resolve_label');
+    expect(handlers.listLabelCardsTool.name).toBe('trello_list_label_cards');
+    expect(handlers.searchCardsByLabelTool.name).toBe('trello_search_cards_by_label');
+    expect(handlers.updateLabelTool.name).toBe('trello_update_label');
     expect(handlers.boardSummaryResource.name).toBe('board-summary');
     expect(handlers.boardOverdueResource.name).toBe('board-overdue');
     expect(handlers.boardByLabelResource.name).toBe('board-by-label');
@@ -147,26 +200,57 @@ describe('Handlers MCP del servidor', () => {
   });
 
   /**
-   * Confirma la traduccion de trello_add_comment.
+   * Confirma la traduccion de trello_list_label_cards.
    */
-  it('debe traducir la salida del caso de uso para trello_add_comment', async () => {
-    const addComment = mockUseCase(
+  it('debe traducir la salida del caso de uso para trello_list_label_cards', async () => {
+    const listLabelCards = mockUseCase(
       ok({
-        id: 'comment-1',
-        text: 'Assigned to Nacho',
-        creator: 'Ignadev',
-        date: '2026-03-29T10:00:00.000Z',
+        boardId: 'board-1',
+        label: { id: 'label-1', name: 'Bug', color: 'red' },
+        cards: [
+          {
+            id: 'card-1',
+            name: 'Fix bug',
+            idList: 'list-1',
+            listName: 'To Do',
+            boardId: 'board-1',
+            closed: false,
+            shortUrl: 'https://trello.com/c/card-1',
+            due: null,
+          },
+        ],
+        cardCount: 1,
+        truncated: false,
       })
     );
-    const handlers = createBootstrapHandlers({ ...baseDependencies, addComment });
-    const result = await handlers.addCommentTool.execute({ cardId: 'card-1', text: 'Assigned to Nacho' });
+    const handlers = createBootstrapHandlers({ ...baseDependencies, listLabelCards });
+    const result = await handlers.listLabelCardsTool.execute({
+      boardId: 'board-1',
+      labelId: 'label-1',
+    });
 
-    expect(addComment.execute).toHaveBeenCalledWith({ cardId: 'card-1', text: 'Assigned to Nacho' });
+    expect(listLabelCards.execute).toHaveBeenCalledWith({
+      boardId: 'board-1',
+      labelId: 'label-1',
+      limit: 50,
+    });
     expect(result.structuredContent).toEqual({
-      id: 'comment-1',
-      text: 'Assigned to Nacho',
-      creator: 'Ignadev',
-      date: '2026-03-29T10:00:00.000Z',
+      boardId: 'board-1',
+      label: { id: 'label-1', name: 'Bug', color: 'red' },
+      cards: [
+        {
+          id: 'card-1',
+          name: 'Fix bug',
+          idList: 'list-1',
+          listName: 'To Do',
+          boardId: 'board-1',
+          closed: false,
+          shortUrl: 'https://trello.com/c/card-1',
+          due: null,
+        },
+      ],
+      cardCount: 1,
+      truncated: false,
     });
   });
 });

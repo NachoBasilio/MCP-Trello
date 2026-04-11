@@ -20,7 +20,7 @@ import { ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js';
  * Protege el wiring de metadata y registro MCP.
  */
 describe('Registry MCP del servidor', () => {
-  it('debe publicar metadata del servidor con 9 tools y 3 resources', () => {
+  it('debe publicar metadata del servidor con todas las tools label-centric', () => {
     expect(bootstrapServerDefinition.info).toEqual({
       name: 'server-mcp-trello',
       version: '0.1.0',
@@ -30,13 +30,19 @@ describe('Registry MCP del servidor', () => {
     expect(bootstrapServerDefinition.options.instructions).toContain('trello_delete_card');
     expect(bootstrapServerDefinition.options.instructions).toContain('trello_add_labels');
     expect(bootstrapServerDefinition.options.instructions).toContain('trello_list_columns');
+    expect(bootstrapServerDefinition.options.instructions).toContain('trello_change_label_color');
+    expect(bootstrapServerDefinition.options.instructions).toContain('trello_list_board_labels');
+    expect(bootstrapServerDefinition.options.instructions).toContain('trello_resolve_label');
+    expect(bootstrapServerDefinition.options.instructions).toContain('trello_list_label_cards');
+    expect(bootstrapServerDefinition.options.instructions).toContain('trello_search_cards_by_label');
+    expect(bootstrapServerDefinition.options.instructions).toContain('trello_update_label');
     expect(bootstrapServerDefinition.options.instructions).toContain('board-summary');
     expect(bootstrapServerDefinition.options.instructions).toContain('board-overdue');
     expect(bootstrapServerDefinition.options.instructions).toContain('board-by-label');
     expect(bootstrapServerCapabilities).toEqual({ tools: {}, resources: {} });
   });
 
-  it('debe registrar las 9 tools y 3 resources sobre el servidor MCP', () => {
+  it('debe registrar las 15 tools y 3 resources sobre el servidor MCP', () => {
     const registerTool = vi.fn();
     const registerResource = vi.fn();
     const server = {
@@ -66,6 +72,12 @@ describe('Registry MCP del servidor', () => {
             zod.literal('trello_move_card'),
             zod.literal('trello_delete_card'),
             zod.literal('trello_add_labels'),
+            zod.literal('trello_change_label_color'),
+            zod.literal('trello_list_board_labels'),
+            zod.literal('trello_resolve_label'),
+            zod.literal('trello_list_label_cards'),
+            zod.literal('trello_search_cards_by_label'),
+            zod.literal('trello_update_label'),
           ]),
           trelloRuntimeAvailable: zod.literal(true),
           trelloWriteRuntimeAvailable: zod.literal(true),
@@ -137,6 +149,54 @@ describe('Registry MCP del servidor', () => {
         outputSchema: mockSchema,
         execute,
       },
+      changeLabelColorTool: {
+        name: 'trello_change_label_color',
+        title: 'Cambiar color de label',
+        description: 'Cambia color.',
+        inputSchema: mockSchema,
+        outputSchema: mockSchema,
+        execute,
+      },
+      listBoardLabelsTool: {
+        name: 'trello_list_board_labels',
+        title: 'Listar labels del board',
+        description: 'Lista labels.',
+        inputSchema: mockSchema,
+        outputSchema: mockSchema,
+        execute,
+      },
+      resolveLabelTool: {
+        name: 'trello_resolve_label',
+        title: 'Resolver label',
+        description: 'Resuelve label.',
+        inputSchema: mockSchema,
+        outputSchema: mockSchema,
+        execute,
+      },
+      listLabelCardsTool: {
+        name: 'trello_list_label_cards',
+        title: 'Listar tarjetas por label',
+        description: 'Lista tarjetas.',
+        inputSchema: mockSchema,
+        outputSchema: mockSchema,
+        execute,
+      },
+      searchCardsByLabelTool: {
+        name: 'trello_search_cards_by_label',
+        title: 'Buscar tarjetas por label',
+        description: 'Busca tarjetas por label.',
+        inputSchema: mockSchema,
+        outputSchema: mockSchema,
+        execute,
+      },
+      updateLabelTool: {
+        name: 'trello_update_label',
+        title: 'Actualizar label',
+        description: 'Actualiza label.',
+        inputSchema: mockSchema,
+        outputSchema: mockSchema,
+        execute,
+      },
       boardSummaryResource: {
         name: 'board-summary',
         template: mockTemplate,
@@ -171,7 +231,7 @@ describe('Registry MCP del servidor', () => {
 
     registerBootstrapCapabilities(server, handlers);
 
-    expect(registerTool).toHaveBeenCalledTimes(9);
+    expect(registerTool).toHaveBeenCalledTimes(15);
     expect(registerResource).toHaveBeenCalledTimes(3);
   });
 });
