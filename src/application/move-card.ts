@@ -1,6 +1,7 @@
 import {
   createCardAmbiguousError,
   createCardNotFoundError,
+  createValidationError,
   type Card,
   type DomainError,
 } from '../domain/index.js';
@@ -76,6 +77,16 @@ export const createMoveCardUseCase = (gateway: TrelloGateway): MoveCardUseCase =
         return gateway.updateCard(targetCardId, { idList: input.toListId.trim() });
       }
 
+      const targetListName = input.toList?.trim() ?? '';
+      if (targetListName.length === 0) {
+        return {
+          ok: false,
+          error: createValidationError('toListId or toList is required', {
+            toListId: input.toListId,
+            toList: input.toList,
+          }),
+        };
+      }
       const boardIdResult = await gateway.resolveBoard({
         boardId: input.boardId,
         boardName: input.boardName,
@@ -85,7 +96,6 @@ export const createMoveCardUseCase = (gateway: TrelloGateway): MoveCardUseCase =
         return boardIdResult;
       }
 
-      const targetListName = input.toList?.trim() ?? '';
       const listsResult = await gateway.listBoardLists(boardIdResult.value);
 
       if (isErr(listsResult)) {

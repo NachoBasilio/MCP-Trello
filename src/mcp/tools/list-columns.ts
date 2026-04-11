@@ -36,7 +36,7 @@ export const createListColumnsTool = (useCase: ListColumnsUseCase): ListColumnsT
     name: 'trello_list_columns',
     title: 'Listar columnas de un board',
     description:
-      'Lista las columnas (listas) de un board con nombre e ID para mover o eliminar tarjetas sin ambiguedad.',
+      'Lista columnas (listas) abiertas y cerradas de un board con nombre e ID para mover o eliminar tarjetas sin ambiguedad.',
     inputSchema: listColumnsInputSchema.shape,
     outputSchema: listColumnsOutputSchema.shape,
     execute: async (arguments_: unknown): Promise<CallToolResult> => {
@@ -60,7 +60,7 @@ export const createListColumnsTool = (useCase: ListColumnsUseCase): ListColumnsT
         content: [
           {
             type: 'text',
-            text: [`Columnas del board ${output.boardId}:`, ...lines].join('\n'),
+            text: [`Columnas del board ${output.boardId} (abiertas y cerradas):`, ...lines].join('\n'),
           },
         ],
         structuredContent: output,
