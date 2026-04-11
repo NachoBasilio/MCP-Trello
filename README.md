@@ -235,6 +235,8 @@ Primero ejecutá la tool diagnóstica:
 
 - `bootstrap.status`
 
+No requiere payload. En la mayoría de los hosts MCP podés ejecutarla sin argumentos; si el cliente te obliga a mandar algo, `{}` alcanza.
+
 Esa tool devuelve el transporte, la policy publicada, las tools registradas y si las credenciales/default board quedaron configuradas (`src/mcp/handlers.ts`, `src/application/bootstrap.ts`).
 
 ### 6) Probá un flujo real mínimo
@@ -246,17 +248,37 @@ Orden recomendado:
 3. `trello_create_card` para crear una tarjeta
 4. `trello_add_comment` o `trello_add_labels` si querés enriquecerla
 
-Ejemplos de payload:
+#### Ejemplos de payload por tool
+
+##### `trello_list_boards`
+
+No requiere input. Si tu host MCP manda un objeto vacío, también es válido:
 
 ```json
 {}
 ```
+
+##### `trello_list_columns`
+
+Acepta `boardId` o `boardName` (`src/mcp/tools/list-columns.ts`). Para evitar ambigüedad, usá `boardId` cuando ya lo tengas de `trello_list_boards`:
 
 ```json
 {
   "boardId": "tu_board_id"
 }
 ```
+
+También podrías usar:
+
+```json
+{
+  "boardName": "Tareas"
+}
+```
+
+##### `trello_create_card`
+
+Ejemplo explícito, indicando board y lista:
 
 ```json
 {
@@ -266,6 +288,37 @@ Ejemplos de payload:
   "pos": "bottom"
 }
 ```
+
+Si omitís `listName`, el caso de uso usa `To Do` por default (`src/application/create-card.ts`). O sea, esto también es válido:
+
+```json
+{
+  "name": "Fix login bug",
+  "boardId": "tu_board_id"
+}
+```
+
+##### `trello_add_comment`
+
+Después de crear o ubicar la tarjeta, podés comentarla por `cardId`:
+
+```json
+{
+  "cardId": "tu_card_id",
+  "text": "Revisar con QA antes de cerrar"
+}
+```
+
+Si no tenés `cardId`, la tool también puede resolver por `cardName`, pero ahí sí conviene acompañar con `boardId` o `boardName` para no meter ambigüedad al pedo (`src/types/tool-contract.ts`, `src/mcp/tools/add-comment.ts`).
+
+#### Recomendación práctica
+
+- arrancá con `bootstrap.status`
+- después ejecutá `trello_list_boards`
+- usá el `boardId` real de esa respuesta para `trello_list_columns` y `trello_create_card`
+- recién después pasá a `trello_add_comment`, `trello_move_card` o tools de labels
+
+Ese orden reduce errores de input y evita depender de autodiscovery o defaults cuando todavía estás probando el setup.
 
 ### 7) Consumí resources si necesitás lectura estructurada
 
