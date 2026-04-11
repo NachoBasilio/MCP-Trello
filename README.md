@@ -94,7 +94,16 @@ Sí: al ejemplo anterior le faltaba el caso concreto de **OpenCode** con credenc
 
 #### Opción A — recomendada: `opencode.json` dentro del repo
 
-Creá un archivo `opencode.json` en la raíz del proyecto:
+Camino rápido:
+
+```bash
+cp opencode.json.example opencode.json
+export TRELLO_API_KEY="tu_api_key"
+export TRELLO_TOKEN="tu_token"
+opencode
+```
+
+Si preferís armarlo a mano, este es el contenido de `opencode.json` en la raíz del proyecto:
 
 ```json
 {
